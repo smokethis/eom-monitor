@@ -109,36 +109,6 @@ class EdgeOMatic:
         self._pending: dict[str, tuple[asyncio.Future, type]] = {}
         self._request_lock = asyncio.Lock()
 
-    # def on_open(self, ws):
-    #     """Triggered once the connection is established."""
-    #     logger.info(f"Connected to {self.uri}")
-    #     # Start the continuous readings stream
-    #     ws.send(msgspec.json.encode({"streamReadings": None}))
-    #     # Request initial configuration
-    #     ws.send(msgspec.json.encode({"configList": None}))
-
-    # def on_message(self, message):
-    #     """Triggered every time the device sends a message."""
-    #     try:
-    #         data = msgspec.json.decode(message, type=dict)
-            
-    #         if "readings" in data:
-    #             self.readings = msgspec.convert(data["readings"], type=EdgeOMaticReadings)
-    #             # Example: print(f"P: {self.readings.pressure} | M: {self.readings.motor}")
-                
-    #         elif "configList" in data:
-    #             self.config = msgspec.convert(data["configList"], type=EdgeOMaticConfig)
-    #             logger.info("Configuration received.")
-                
-    #     except msgspec.DecodeError:
-    #         logger.info(f"Failed to decode message: {message}")
-    
-    # async def send(self, payload):
-    #     try:
-    #         await self.ws.send(payload)
-    #     except Exception as e:
-    #             logger.warning("Sending error: %s", e)
-
     async def send(self, payload: dict):
         if self.ws is None:
             raise RuntimeError("Websocket not connected")
@@ -223,14 +193,6 @@ class EdgeOMatic:
             {"streamReadings": None}, # Yes, the trigger message is different to the received schema. I hate it
             EdgeOMaticReadings,
         )
-    
-    # def on_close(self, ws, close_status_code, close_msg):
-    #     """Triggered when the connection closes (normally or abnormally)."""
-    #     logger.info(f"Connection closed. Code: {close_status_code}, Msg: {close_msg}")
-
-    # def on_error(self, ws, error):
-    #     """Triggered on network or protocol errors."""
-    #     logger.info(f"WebSocket error: {error}")
 
     async def run(self):
         while True:
