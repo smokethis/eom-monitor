@@ -31,27 +31,27 @@ async def get_config() -> EdgeOMaticConfig:
 @get("/readings")
 async def get_readings() -> EdgeOMaticReadings:
     """Get the current EdgeOMatic readings."""
-    return eom.get_readings()
+    return await eom.get_readings()
 
-@post("/mode/{mode:str}")
-async def set_mode(
-    mode: str
-) -> Dict[str, Any]:
-    """Set the EdgeOMatic control mode."""
-    try:
-        control_mode = ControlMode(mode)
-        result = eom.set_mode(control_mode)
-        return {"status": "success", "result": result}
-    except ValueError:
-        return {"status": "error", "message": f"Invalid mode: {mode}"}
+# @post("/mode/{mode:str}")
+# async def set_mode(
+#     mode: str
+# ) -> Dict[str, Any]:
+#     """Set the EdgeOMatic control mode."""
+#     try:
+#         control_mode = ControlMode(mode)
+#         result = eom.set_mode(control_mode)
+#         return {"status": "success", "result": result}
+#     except ValueError:
+#         return {"status": "error", "message": f"Invalid mode: {mode}"}
 
-@post("/motor/{speed:int}")
-async def set_motor_speed(
-    speed: int
-) -> Dict[str, Any]:
-    """Set the EdgeOMatic motor speed."""
-    result = eom.set_motor_speed(speed)
-    return {"status": "success", "result": result}
+# @post("/motor/{speed:int}")
+# async def set_motor_speed(
+#     speed: int
+# ) -> Dict[str, Any]:
+#     """Set the EdgeOMatic motor speed."""
+#     result = eom.set_motor_speed(speed)
+#     return {"status": "success", "result": result}
 
 @post("/restart")
 async def restart_device() -> Dict[str, Any]:
@@ -62,7 +62,7 @@ async def restart_device() -> Dict[str, Any]:
 @get("/info")
 async def get_info() -> EdgeOMaticInfo:
     """Get information about the EdgeOMatic device."""
-    return eom.get_info()
+    return await eom.get_info()
 
 # Create a lifecycle hook to close the connection when the app shuts down
 # def on_shutdown() -> None:
@@ -77,10 +77,10 @@ async def get_info() -> EdgeOMaticInfo:
 app = Litestar(
     route_handlers=[
         get_config, 
-        set_config, 
+        # set_config, 
         get_readings, 
-        set_mode, 
-        set_motor_speed, 
+        # set_mode, 
+        # set_motor_speed, 
         restart_device, 
         get_info
     ],

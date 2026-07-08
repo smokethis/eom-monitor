@@ -217,10 +217,10 @@ class EdgeOMatic:
             EdgeOMaticInfo,
         )
     
-    async def get_reading(self) -> EdgeOMaticReadings:
+    async def get_readings(self) -> EdgeOMaticReadings:
         return await self.request(
-            "reading",
-            {"reading": None},
+            "readings",
+            {"streamReadings": None}, # Yes, the trigger message is different to the received schema. I hate it
             EdgeOMaticReadings,
         )
     
