@@ -210,6 +210,13 @@ class EdgeOMatic:
             EdgeOMaticConfig,
         )
     
+    async def get_info(self) -> EdgeOMaticInfo:
+        return await self.request(
+            "info",
+            {"info": None},
+            EdgeOMaticInfo,
+        )
+    
     async def get_reading(self) -> EdgeOMaticReadings:
         return await self.request(
             "reading",

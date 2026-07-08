@@ -20,13 +20,13 @@ async def startup():
 async def get_config() -> EdgeOMaticConfig:
     return await eom.get_config()
 
-@post("/config")
-async def set_config(
-    data: EdgeOMaticConfig
-) -> Dict[str, str]:
-    """Update the EdgeOMatic configuration."""
-    eom.set_config(data)
-    return {"status": "success"}
+# @post("/config")
+# async def set_config(
+#     data: EdgeOMaticConfig
+# ) -> Dict[str, str]:
+#     """Update the EdgeOMatic configuration."""
+#     eom.set_config(data)
+#     return {"status": "success"}
 
 @get("/readings")
 async def get_readings() -> EdgeOMaticReadings:
