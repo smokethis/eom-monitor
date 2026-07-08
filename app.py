@@ -1,19 +1,24 @@
 from litestar import Litestar, get, post
 from eom import EdgeOMatic
 
-from litestar.datastructures import State
-from litestar.di import Provide
+# from litestar.datastructures import State
+# from litestar.di import Provide
 from typing import Annotated, Dict, Any
 from eom import EdgeOMaticConfig, ControlMode, EdgeOMaticReadings, EdgeOMaticInfo
 import logging
+import asyncio
 
-eom: EdgeOMatic = EdgeOMatic("0.0.0.0", 80)
+logging.basicConfig(level=logging.INFO)
+eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
+
+# Define Startup Logic
+async def startup():
+    asyncio.create_task(eom.run())
 
 # Routes for EdgeOMatic API
 @get("/config")
 async def get_config() -> EdgeOMaticConfig:
-    """Get the current EdgeOMatic configuration."""
-    return eom.config
+    return await eom.get_config()
 
 @post("/config")
 async def set_config(
@@ -60,13 +65,13 @@ async def get_info() -> EdgeOMaticInfo:
     return eom.get_info()
 
 # Create a lifecycle hook to close the connection when the app shuts down
-def on_shutdown() -> None:
-    global eom
-    if eom is not None:
-        try:
-            eom.restart()
-        except Exception as e:
-            logging.error(f"Error during shutdown: {e}")
+# def on_shutdown() -> None:
+#     global eom
+#     if eom is not None:
+#         try:
+#             eom.restart()
+#         except Exception as e:
+#             logging.error(f"Error during shutdown: {e}")
 
 # App configuration
 app = Litestar(
@@ -79,6 +84,6 @@ app = Litestar(
         restart_device, 
         get_info
     ],
-    on_shutdown=[on_shutdown]
+    # on_shutdown=[on_shutdown],
+    on_startup=[startup]
 )
-

@@ -1,7 +1,12 @@
-from enum import Enum
 import msgspec
+from websockets.asyncio.client import connect
 from msgspec import Struct
-from websocket import create_connection, WebSocket
+from enum import Enum
+import logging
+import asyncio
+
+# Get a logger specific to this file
+logger = logging.getLogger(__name__)
 
 class ControlMode(Enum):
     Manual = "MANUAL_CONTROL"
@@ -68,7 +73,7 @@ class EdgeOMaticConfig(Struct):
     od_clench_arousal_boost: bool
     od_clench_arousal_boost_amount: int
     od_detection_armed: bool
-    
+
 
 class EdgeOMaticReadings(Struct):
     pressure: int
@@ -97,69 +102,141 @@ class EdgeOMaticInfo(Struct):
     fw_version: str = msgspec.field(name="fwVersion")
 
 class EdgeOMatic:
-    ws: WebSocket
-    _config: EdgeOMaticConfig
-
-    @staticmethod
-    def send_and_recv_struct(ws: WebSocket, struct: Struct, wait_for_name: str|None=None, type=object):
-        ws.send(msgspec.json.encode(struct))
-        if wait_for_name:
-            while True:
-                res = msgspec.json.decode(ws.recv(), type=object)
-                if wait_for_name in res:
-                    return msgspec.convert(res[wait_for_name], type)
-        return msgspec.json.decode(ws.recv(), type=type)
-    
-    @staticmethod
-    def recv_struct(ws: WebSocket, wait_for_name: str|None=None, type=object):
-        if wait_for_name:
-            while True:
-                res = msgspec.json.decode(ws.recv(), type=object)
-                if wait_for_name in res:
-                    return msgspec.convert(res[wait_for_name], type)
-        return msgspec.json.decode(ws.recv(), type=type)
-    
     def __init__(self, ip: str, port: int):
-        self.ws = create_connection(f"ws://{ip}:{port}/")
-        self.send_and_recv_struct(self.ws, {
-            "streamReadings": None
-        })
-        self._config = self.send_and_recv_struct(self.ws, {
-            "configList": None
-        }, wait_for_name="configList", type=EdgeOMaticConfig)
+        self.uri = f"ws://{ip}:{port}/"
+        self.readings = None
+        self.config = None
+        self._pending: dict[str, tuple[asyncio.Future, type]] = {}
+        self._request_lock = asyncio.Lock()
 
-    @property
-    def config(self) -> EdgeOMaticConfig:
-        return self._config
-    
-    def set_config(self, config: EdgeOMaticConfig):
-        self._config = config
-        self.send_and_recv_struct(self.ws, {
-            "configSet": dict(config)
-        })
+    # def on_open(self, ws):
+    #     """Triggered once the connection is established."""
+    #     logger.info(f"Connected to {self.uri}")
+    #     # Start the continuous readings stream
+    #     ws.send(msgspec.json.encode({"streamReadings": None}))
+    #     # Request initial configuration
+    #     ws.send(msgspec.json.encode({"configList": None}))
 
-    def get_readings(self):
-        return self.recv_struct(self.ws, "readings", EdgeOMaticReadings)
+    # def on_message(self, message):
+    #     """Triggered every time the device sends a message."""
+    #     try:
+    #         data = msgspec.json.decode(message, type=dict)
+            
+    #         if "readings" in data:
+    #             self.readings = msgspec.convert(data["readings"], type=EdgeOMaticReadings)
+    #             # Example: print(f"P: {self.readings.pressure} | M: {self.readings.motor}")
+                
+    #         elif "configList" in data:
+    #             self.config = msgspec.convert(data["configList"], type=EdgeOMaticConfig)
+    #             logger.info("Configuration received.")
+                
+    #     except msgspec.DecodeError:
+    #         logger.info(f"Failed to decode message: {message}")
     
-    def set_mode(self, mode: ControlMode):
-        return self.send_and_recv_struct(self.ws, {
-            "setMode": mode.value
-        }, "setMode")
+    # async def send(self, payload):
+    #     try:
+    #         await self.ws.send(payload)
+    #     except Exception as e:
+    #             logger.warning("Sending error: %s", e)
+
+    async def send(self, payload: dict):
+        if self.ws is None:
+            raise RuntimeError("Websocket not connected")
+
+        # EOM3000 websocket handler only accepts TEXT frames. Yes we have to encode/decode. Trust.
+        data = msgspec.json.encode(payload).decode("utf-8")
+
+        logger.debug("Sending text: %s", data)
+
+        await self.ws.send(data)
     
-    def set_motor_speed(self, speed: int):
-        return self.send_and_recv_struct(self.ws, {
-            "setMotor": speed
-        }, "setMotor")
+    async def request(self, response_name: str, payload: dict, response_type: type):
+        async with self._request_lock:
+            logger.debug("Requesting %s", response_name)
+            # Create a future
+            future = asyncio.get_running_loop().create_future()
+            # Regsiter it
+            self._pending[response_name] = (
+                future,
+                response_type,
+            )
+            # Send the payload
+            logger.debug("Sending %s", payload)
+            await self.send(payload)
+            # Start a timer to wait for a response
+            try:
+                logger.debug("Waiting for %s", response_name)
+                return await asyncio.wait_for(
+                    future,
+                    timeout=10,
+                )
+
+            finally:
+                self._pending.pop(response_name, None)
+
+    async def _handle_message(self, message):
+
+        logger.debug("RX raw: %r", message)
+
+        if isinstance(message, str):
+            message = message.encode()
+
+        msg = msgspec.json.decode(
+            message,
+            type=object,
+        )
+
+        logger.debug("RX decoded: %s", msg)
+
+        msg = msgspec.json.decode(message, type=object,)
+
+        for key, value in msg.items():
+            pending = self._pending.get(key)
+            if pending is None:
+                logger.info("Unhandled message: %s", key)
+                continue
+
+            future, response_type = pending
+
+            result = msgspec.convert(value,type=response_type)
+
+            if not future.done():
+                future.set_result(result)
+
+    async def get_config(self) -> EdgeOMaticConfig:
+        return await self.request(
+            "configList",
+            {"configList": None},
+            EdgeOMaticConfig,
+        )
     
-    def restart(self):
-        return self.send_and_recv_struct(self.ws, {
-            "restart": None
-        }, "restart")
+    async def get_reading(self) -> EdgeOMaticReadings:
+        return await self.request(
+            "reading",
+            {"reading": None},
+            EdgeOMaticReadings,
+        )
     
-    def get_info(self):
-        return self.send_and_recv_struct(self.ws, {
-            "info": None
-        }, "info", EdgeOMaticInfo)
-    
-    def close(self):
-        self.ws.close(timeout=None)
+    # def on_close(self, ws, close_status_code, close_msg):
+    #     """Triggered when the connection closes (normally or abnormally)."""
+    #     logger.info(f"Connection closed. Code: {close_status_code}, Msg: {close_msg}")
+
+    # def on_error(self, ws, error):
+    #     """Triggered on network or protocol errors."""
+    #     logger.info(f"WebSocket error: {error}")
+
+    async def run(self):
+        while True:
+            try:
+                async with connect(self.uri, ping_interval=None) as ws: # Disabled ping for debugging
+                    self.ws = ws
+
+                    logger.info("Connected")
+
+                    async for message in ws:
+                        await self._handle_message(message)
+
+            except Exception as e:
+                logger.warning("Connection error: %s", e)
+                logger.warning("Retrying in 5 seconds...")
+                await asyncio.sleep(5)
