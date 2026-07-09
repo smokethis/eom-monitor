@@ -21,16 +21,29 @@
 <div>
     <h2>Message Stream</h2>
 
-    <div id="messages"
-        hx-ext="sse"
-        sse-connect="/api/events"
-        sse-swap="message">
+    <div id="event-stream" hx-ext="sse" sse-connect="/api/events/html"sse-swap="message">
     </div>
+
+    <p>
+        Pressure:
+        <span id="pressure">--</span>
+    </p>
+
+    <p>
+        Milliseconds since start:
+        <span id="millis">--</span>
+    </p>
+
+    <p>
+        Run mode:
+        <span id="run-mode">--</span>
+    </p>
+    
 </div>
-<style>
+<!-- <style>
 #messages {
     white-space: pre-wrap;
 }
-</style>
+</style> -->
 </body>
 </html>

@@ -40,6 +40,15 @@ async def config_panel() -> Template:
         }
     )
 
+@get("/fragments/events")
+async def events_fragment(reading: dict) -> Template:
+    return Template(
+        template_name="events_panel.html",
+        context={
+            "events": reading,
+        },
+    )
+
 @get("/api/events")
 async def events() -> ServerSentEvent:
 
@@ -55,6 +64,34 @@ async def events() -> ServerSentEvent:
                     "data": json_encoder.encode(reading).decode()
                     }
                 # yield json_encoder.encode(reading).decode()
+
+        finally:
+            eom.readings_bus.unsubscribe(queue)
+            logging.debug("Subscriber Left Queue")
+
+    return ServerSentEvent(stream())
+
+@get("/api/events/html")
+async def events_html() -> ServerSentEvent:
+
+    queue = eom.readings_bus.subscribe()
+    logging.debug("Subscriber Joined Queue")
+
+    async def stream():
+        try:
+            while True:
+                reading = await queue.get()
+
+                html = template_engine.get_template(
+                    "values_panel.html"
+                ).render(
+                    events=reading
+                )
+
+                yield {
+                    "event": "message",
+                    "data": html,
+                }
 
         finally:
             eom.readings_bus.unsubscribe(queue)
@@ -117,6 +154,10 @@ async def get_info() -> EdgeOMaticInfo:
 async def shutdown() -> None:
     await eom.close()
 
+template_engine = JinjaTemplateEngine(
+    directory=Path("templates")
+)
+
 # Litestar app configuration
 app = Litestar(
     route_handlers=[
@@ -130,6 +171,7 @@ app = Litestar(
         get_info,
         dashboard,
         config_panel,
+        events_html,
         events
     ],
     on_shutdown=[shutdown],
