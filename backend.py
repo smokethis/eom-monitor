@@ -1,10 +1,9 @@
 from litestar import Litestar, get, post
-from litestar.contrib.jinja import JinjaTemplateEngine
-from litestar.response import Template, ServerSentEvent
+from litestar.response import ServerSentEvent
 from pathlib import Path
 from collections import deque
 from typing import Dict, Any
-from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo, EdgeOMaticReadingsBus
+from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo
 import logging
 import asyncio
 import msgspec
