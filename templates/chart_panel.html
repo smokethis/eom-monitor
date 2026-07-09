@@ -1,6 +1,6 @@
-<article>
+<div class="chart-container">
     <canvas id="myChart"></canvas>
-</article>
+</div>
 
 <script>
 (function() {
@@ -34,7 +34,8 @@
                 y: {
                     beginAtZero: true
                 }
-            }
+            },
+            maintainAspectRatio: false
         }
     });
 

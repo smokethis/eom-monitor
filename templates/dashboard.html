@@ -9,55 +9,107 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Pico CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+
+    <style>
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .panel {
+            background: var(--card-background-color);
+            border: 1px solid var(--card-border-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            min-width: 0;
+        }
+
+        .wide {
+            grid-column: 1 / -1;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 500px;
+        }
+
+        @media (max-width: 800px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
     <title>{{ title }}</title>
+    
 </head>
 
 <body>
 <main class="container">
-<h1>{{ title }}</h1>
 
-<div>
-    <h2>Device Configuration</h2>
+    <h1>{{ title }}</h1>
 
-    <div hx-get="/fragments/config" hx-trigger="load">
-        Loading...
+    <div class="dashboard">
+
+        <section class="panel">
+            <h2>Device Configuration</h2>
+
+            <div hx-get="/fragments/config" hx-trigger="load">
+                Loading...
+            </div>
+
+            <hr>
+
+            <button hx-get="/api/readings"
+                    hx-swap="none">
+                Start readings
+            </button>
+
+            <button hx-post="/api/restart"
+                    hx-swap="none">
+                Restart device
+            </button>
+        </section>
+
+
+        <section class="panel">
+            <h2>Live Values</h2>
+
+            <div id="event-stream"
+                 hx-ext="sse"
+                 sse-connect="/api/events/html"
+                 sse-swap="message">
+            </div>
+
+            <p>
+                Pressure:
+                <strong><span id="pressure">--</span></strong>
+            </p>
+
+            <p>
+                Milliseconds since start:
+                <strong><span id="millis">--</span></strong>
+            </p>
+
+            <p>
+                Run mode:
+                <strong><span id="run-mode">--</span></strong>
+            </p>
+        </section>
+
+
+        <section class="panel wide chart-panel">
+            <h2>Chart</h2>
+
+            <div hx-get="/fragments/chart"
+                hx-trigger="load">
+                Loading chart...
+            </div>
+        </section>
+
     </div>
-
-</div>
-<button hx-get="/api/readings"
-        hx-swap="none">
-    Start readings
-</button>
-<button hx-post="/api/restart"
-        hx-swap="none">
-    Restart device
-</button>
-<div>
-    <h2>Live Values</h2>
-
-    <div id="event-stream" hx-ext="sse" sse-connect="/api/events/html"sse-swap="message">
-    </div>
-
-    <p>
-        Pressure:
-        <span id="pressure">--</span>
-    </p>
-
-    <p>
-        Milliseconds since start:
-        <span id="millis">--</span>
-    </p>
-
-    <p>
-        Run mode:
-        <span id="run-mode">--</span>
-    </p>
-    
-</div>
-
-<div hx-get="/fragments/chart" hx-trigger="load">
-    Loading chart...
-</div>
 
 </main>
 </body>
