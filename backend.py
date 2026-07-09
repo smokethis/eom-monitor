@@ -77,33 +77,33 @@ async def events() -> ServerSentEvent:
 
     return ServerSentEvent(stream())
 
-@get("/api/events/html")
-async def events_html() -> ServerSentEvent:
+# @get("/api/events/html")
+# async def events_html() -> ServerSentEvent:
 
-    queue = eom.readings_bus.subscribe()
-    logging.debug("Subscriber Joined Queue")
+#     queue = eom.readings_bus.subscribe()
+#     logging.debug("Subscriber Joined Queue")
 
-    async def stream():
-        try:
-            while True:
-                reading = await queue.get()
+#     async def stream():
+#         try:
+#             while True:
+#                 reading = await queue.get()
 
-                html = template_engine.get_template(
-                    "values_panel.html"
-                ).render(
-                    events=reading
-                )
+#                 html = template_engine.get_template(
+#                     "values_panel.html"
+#                 ).render(
+#                     events=reading
+#                 )
 
-                yield {
-                    "event": "message",
-                    "data": html,
-                }
+#                 yield {
+#                     "event": "message",
+#                     "data": html,
+#                 }
 
-        finally:
-            eom.readings_bus.unsubscribe(queue)
-            logging.debug("Subscriber Left Queue")
+#         finally:
+#             eom.readings_bus.unsubscribe(queue)
+#             logging.debug("Subscriber Left Queue")
 
-    return ServerSentEvent(stream())
+#     return ServerSentEvent(stream())
 
 # Routes for EdgeOMatic API
 @get("/api/config")
@@ -178,7 +178,7 @@ app = Litestar(
         # dashboard,
         # config_panel,
         # chart_panel,
-        events_html,
+        # events_html,
         events
     ],
     on_shutdown=[shutdown],
