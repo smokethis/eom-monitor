@@ -5,6 +5,7 @@ import asyncio
 
 LITESTAR_BASE = "http://localhost:8000/"
 
+# Generic API data fetch function
 async def api_get(path):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{LITESTAR_BASE}{path}")
@@ -17,12 +18,14 @@ async def api_get(path):
 
         return response.json()
 
+# JSON data parser
 def show_json(data):
     ui.code(
         json.dumps(data, indent=2),
         language="json"
     )
 
+# Event listener
 async def listen_for_events(on_event):
 
     async with httpx.AsyncClient(timeout=None) as client:
@@ -40,6 +43,7 @@ async def listen_for_events(on_event):
                             json.loads(payload)
                         )
 
+# Generic API display route
 @ui.page("/api/{endpoint:path}")
 async def api_viewer(endpoint: str):
 
