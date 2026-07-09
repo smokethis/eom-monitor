@@ -107,22 +107,29 @@ class EdgeOMaticWifiStatus(Struct): # Defaults because there may not be any info
     rssi: int = -1
 
 class EdgeOMaticReadingsBus:
-    def __init__(self):
+    def __init__(self, queue_size: int = 1):
+        self._queue_size = queue_size
         self._subscribers: set[asyncio.Queue] = set()
 
     def subscribe(self) -> asyncio.Queue:
-        queue = asyncio.Queue()
+        queue = asyncio.Queue(maxsize=self._queue_size)
         self._subscribers.add(queue)
         return queue
 
     def unsubscribe(self, queue: asyncio.Queue):
-        self._subscribers.remove(queue)
+        self._subscribers.discard(queue)
 
     async def publish(self, reading):
-        for queue in self._subscribers:
+        for queue in list(self._subscribers):
+            if queue.full():
+                try:
+                    queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    pass
+
             await queue.put(reading)
 
-class EdgeOMatic:
+class EdgeOMatic: # Main object that runs the show
     def __init__(self, ip: str, port: int):
         self.uri = f"ws://{ip}:{port}/"
         self.readings = None
