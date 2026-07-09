@@ -4,6 +4,7 @@ from msgspec import Struct
 from enum import Enum
 import logging
 import asyncio
+from collections import deque
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -101,6 +102,11 @@ class EdgeOMaticInfo(Struct):
     hw_version: str = msgspec.field(name="hwVersion")
     fw_version: str = msgspec.field(name="fwVersion")
 
+class EdgeOMaticWifiStatus(Struct): # Defaults because there may not be any information immediately
+    ssid: str = ""
+    ip: str = ""
+    rssi: int = -1
+
 class EdgeOMatic:
     def __init__(self, ip: str, port: int):
         self.uri = f"ws://{ip}:{port}/"
@@ -108,6 +114,8 @@ class EdgeOMatic:
         self.config = None
         self._pending: dict[str, tuple[asyncio.Future, type]] = {}
         self._request_lock = asyncio.Lock()
+        self._latest_reading = None
+        self._reading_history = deque(maxlen=100)
 
     async def send(self, payload: dict):
         if self.ws is None:
@@ -151,27 +159,32 @@ class EdgeOMatic:
         if isinstance(message, str):
             message = message.encode()
 
-        msg = msgspec.json.decode(
-            message,
-            type=object,
-        )
-
-        logger.debug("RX decoded: %s", msg)
-
-        msg = msgspec.json.decode(message, type=object,)
+        msg = msgspec.json.decode(message, type=object)
 
         for key, value in msg.items():
-            pending = self._pending.get(key)
-            if pending is None:
-                logger.info("Unhandled message: %s", key)
+
+            # Request/response path
+            pending = self._pending.pop(key, None)
+            if pending is not None:
+                future, response_type = pending
+                result = msgspec.convert(value, type=response_type)
+                if not future.done():
+                    future.set_result(result)
                 continue
 
-            future, response_type = pending
+            # Event path
+            if key == "readings":
+                reading = msgspec.convert(value, type=EdgeOMaticReadings)
+                self._latest_reading = reading
+                self._reading_history.append(reading)
+                continue
 
-            result = msgspec.convert(value,type=response_type)
-
-            if not future.done():
-                future.set_result(result)
+            if key == "wifiStatus":
+                self._wifi_status = msgspec.convert(value, type=EdgeOMaticWifiStatus)
+                continue
+            
+            #Whinge about unexpected message types
+            logger.debug("Ignoring message type %s", key)
 
     async def get_config(self) -> EdgeOMaticConfig:
         return await self.request(
@@ -193,6 +206,14 @@ class EdgeOMatic:
             {"streamReadings": None}, # Yes, the trigger message is different to the received schema. I hate it
             EdgeOMaticReadings,
         )
+    
+    def get_readings_history(self):
+        return self._reading_history
+
+    async def restart(self):
+        await self.send({
+            "restart": None
+        })
 
     async def run(self):
         while True:

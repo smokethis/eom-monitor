@@ -1,5 +1,6 @@
 from litestar import Litestar, get, post
 from eom import EdgeOMatic
+from collections import deque
 
 # from litestar.datastructures import State
 # from litestar.di import Provide
@@ -30,8 +31,11 @@ async def get_config() -> EdgeOMaticConfig:
 
 @get("/readings")
 async def get_readings() -> EdgeOMaticReadings:
-    """Get the current EdgeOMatic readings."""
     return await eom.get_readings()
+
+@get("/readings/history")
+def get_readings_history() -> deque:
+    return eom.get_readings_history()
 
 # @post("/mode/{mode:str}")
 # async def set_mode(
@@ -54,8 +58,7 @@ async def get_readings() -> EdgeOMaticReadings:
 #     return {"status": "success", "result": result}
 
 @post("/restart")
-async def restart_device() -> Dict[str, Any]:
-    """Restart the EdgeOMatic device."""
+def restart_device() -> Dict[str, Any]:
     result = eom.restart()
     return {"status": "success", "result": result}
 
@@ -78,7 +81,8 @@ app = Litestar(
     route_handlers=[
         get_config, 
         # set_config, 
-        get_readings, 
+        get_readings,
+        get_readings_history,
         # set_mode, 
         # set_motor_speed, 
         restart_device, 
