@@ -41,12 +41,18 @@ async def config_panel() -> Template:
     )
 
 @get("/fragments/events")
-async def events_fragment(reading: dict) -> Template:
+async def events_panel(reading: dict) -> Template:
     return Template(
         template_name="events_panel.html",
         context={
             "events": reading,
         },
+    )
+
+@get("/fragments/chart")
+async def chart_panel() -> Template:
+    return Template(
+        template_name="chart_panel.html"
     )
 
 @get("/api/events")
@@ -171,6 +177,7 @@ app = Litestar(
         get_info,
         dashboard,
         config_panel,
+        chart_panel,
         events_html,
         events
     ],
