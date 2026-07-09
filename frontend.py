@@ -53,6 +53,7 @@ async def api_viewer(endpoint: str):
 
     show_json(data)
 
+# Root page
 @ui.page("/")
 async def root():
 
