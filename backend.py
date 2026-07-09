@@ -1,5 +1,4 @@
 from litestar import Litestar, get, post
-from litestar.template.config import TemplateConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.response import Template, ServerSentEvent
 from pathlib import Path
@@ -19,42 +18,7 @@ eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
 async def startup():
     asyncio.create_task(eom.run())
 
-# Configure dashboard GUI routes
-# @get("/dashboard")
-# async def dashboard() -> Template:
-#     return Template(
-#         template_name="dashboard.html",
-#         context={
-#             "title": "EOM Monitor",
-#         },
-#     )
-
-# @get("/fragments/config")
-# async def config_panel() -> Template:
-#     config = await eom.get_config()
-
-#     return Template(
-#         "config_panel.html",
-#         context={
-#             "config": config
-#         }
-#     )
-
-# @get("/fragments/events")
-# async def events_panel(reading: dict) -> Template:
-#     return Template(
-#         template_name="events_panel.html",
-#         context={
-#             "events": reading,
-#         },
-#     )
-
-# @get("/fragments/chart")
-# async def chart_panel() -> Template:
-#     return Template(
-#         template_name="chart_panel.html"
-#     )
-
+# Events API Endpoint
 @get("/api/events")
 async def events() -> ServerSentEvent:
 
@@ -69,7 +33,6 @@ async def events() -> ServerSentEvent:
                     "event": "message",
                     "data": json_encoder.encode(reading).decode()
                     }
-                # yield json_encoder.encode(reading).decode()
 
         finally:
             eom.readings_bus.unsubscribe(queue)
@@ -77,35 +40,7 @@ async def events() -> ServerSentEvent:
 
     return ServerSentEvent(stream())
 
-# @get("/api/events/html")
-# async def events_html() -> ServerSentEvent:
-
-#     queue = eom.readings_bus.subscribe()
-#     logging.debug("Subscriber Joined Queue")
-
-#     async def stream():
-#         try:
-#             while True:
-#                 reading = await queue.get()
-
-#                 html = template_engine.get_template(
-#                     "values_panel.html"
-#                 ).render(
-#                     events=reading
-#                 )
-
-#                 yield {
-#                     "event": "message",
-#                     "data": html,
-#                 }
-
-#         finally:
-#             eom.readings_bus.unsubscribe(queue)
-#             logging.debug("Subscriber Left Queue")
-
-#     return ServerSentEvent(stream())
-
-# Routes for EdgeOMatic API
+# Static API Endpoints
 @get("/api/config")
 async def get_config() -> EdgeOMaticConfig:
     return await eom.get_config()
@@ -146,45 +81,33 @@ async def get_readings_history() -> deque:
 #     result = eom.set_motor_speed(speed)
 #     return {"status": "success", "result": result}
 
-@post("/api/restart")
-async def restart_device() -> Dict[str, Any]:
-    result = await eom.restart()
-    return {"status": "success", "result": result}
-
 @get("/api/info")
 async def get_info() -> EdgeOMaticInfo:
     """Get information about the EdgeOMatic device."""
     return await eom.get_info()
 
+@post("/api/restart")
+async def restart_device() -> Dict[str, Any]:
+    result = await eom.restart()
+    return {"status": "success", "result": result}
+
 # Close the connection on shutdown
 async def shutdown() -> None:
     await eom.close()
-
-template_engine = JinjaTemplateEngine(
-    directory=Path("templates")
-)
 
 # Litestar app configuration
 app = Litestar(
     route_handlers=[
         get_config, 
-        # set_config, 
         get_readings,
         get_readings_history,
-        # set_mode, 
-        # set_motor_speed, 
         restart_device, 
         get_info,
-        # dashboard,
-        # config_panel,
-        # chart_panel,
-        # events_html,
-        events
+        events,
+        # set_mode, 
+        # set_motor_speed,
+        # set_config
     ],
     on_shutdown=[shutdown],
-    on_startup=[startup],
-    template_config=TemplateConfig(
-        directory=Path("templates"),
-        engine=JinjaTemplateEngine,
-    ),
+    on_startup=[startup]
 )
