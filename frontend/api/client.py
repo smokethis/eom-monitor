@@ -27,6 +27,8 @@ async def api_post(path):
             }
 
 class DeviceAPI:
+    def __init__(self):
+        self.base_uri = LITESTAR_BASE
 
     async def get_config(self):
         return await api_get("/api/config")
@@ -36,3 +38,6 @@ class DeviceAPI:
 
     async def start_readings(self):
         return await api_get("/api/readings")
+    
+    async def get_api(self, endpoint):
+        return await api_get(f"/api/{endpoint}")

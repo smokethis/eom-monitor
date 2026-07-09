@@ -37,7 +37,7 @@ async def api_viewer(endpoint: str):
 
     ui.label(f"/api/{endpoint}").classes("text-3xl")
 
-    data = await api_get(f"/api/{endpoint}")
+    data = await client.get_api(endpoint)
 
     show_json(data)
 
