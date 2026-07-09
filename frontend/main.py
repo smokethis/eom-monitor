@@ -2,32 +2,9 @@ from nicegui import ui
 import httpx
 import json
 import asyncio
+from api.client import DeviceAPI
 
-LITESTAR_BASE = "http://localhost:8000/"
-
-# Generic API GET function
-async def api_get(path):
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{LITESTAR_BASE}{path}")
-
-        if response.is_error:
-            return {
-                "status": response.status_code,
-                "error": response.text
-            }
-
-        return response.json()
-
-# Generic API POST function
-async def api_post(path):
-    async with httpx.AsyncClient() as client:
-        response = await client.post(f"{LITESTAR_BASE}{path}")
-
-        if response.is_error:
-            return {
-                "status": response.status_code,
-                "error": response.text
-            }
+client = DeviceAPI()
 
 # JSON data parser
 def show_json(data):
@@ -70,17 +47,17 @@ async def root():
 
     ui.label("Dashboard").classes("text-3xl")
 
-    config = await api_get("/api/config")
+    config = await client.get_config()
 
     alive = True
 
     async def start_events():
         ui.notify("Starting event stream...")
-        await api_get("/api/readings")
+        await client.start_readings()
 
     async def restart_device():
         ui.notify("Restarting device...")
-        await api_post("/api/restart")
+        await client.restart()
 
     with ui.row():
         ui.button('Start stream', on_click=lambda: start_events())
