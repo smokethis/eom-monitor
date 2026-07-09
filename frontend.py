@@ -82,15 +82,17 @@ async def root():
         ui.notify("Restarting device...")
         await api_post("/api/restart")
 
-    ui.button('Start stream', on_click=lambda: start_events())
-    ui.button('Restart device', on_click=lambda: restart_device())
+    with ui.row():
+        ui.button('Start stream', on_click=lambda: start_events())
+        ui.button('Restart device', on_click=lambda: restart_device())
 
-    with ui.card():
-        ui.label(f"Hostname: {config['hostname']}")
-        ui.label(f"Arousal Threshold: {config['sensitivity_threshold']}")
-        ui.label(f"Sensor Sensitivity: {config['sensor_sensitivity']}")
+    with ui.row():
+        with ui.card():
+            ui.label(f"Hostname: {config['hostname']}")
+            ui.label(f"Arousal Threshold: {config['sensitivity_threshold']}")
+            ui.label(f"Sensor Sensitivity: {config['sensor_sensitivity']}")
 
-    latest_event = ui.code("Waiting for events...", language="json")
+        latest_event = ui.code("Waiting for events...", language="json")
 
     async def handle_event(event):
 
