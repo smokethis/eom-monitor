@@ -5,7 +5,7 @@ import asyncio
 
 LITESTAR_BASE = "http://localhost:8000/"
 
-# Generic API data fetch function
+# Generic API data GET function
 async def api_get(path):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{LITESTAR_BASE}{path}")
@@ -17,6 +17,17 @@ async def api_get(path):
             }
 
         return response.json()
+
+# Generic API data POST function
+async def api_post(path):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(f"{LITESTAR_BASE}{path}")
+
+        if response.is_error:
+            return {
+                "status": response.status_code,
+                "error": response.text
+            }
 
 # JSON data parser
 def show_json(data):
@@ -62,6 +73,17 @@ async def root():
     config = await api_get("/api/config")
 
     alive = True
+
+    async def start_events():
+        ui.notify("Starting event stream...")
+        await api_get("/api/readings")
+
+    async def restart_device():
+        ui.notify("Restarting device...")
+        await api_post("/api/restart")
+
+    ui.button('Start stream', on_click=lambda: start_events())
+    ui.button('Restart device', on_click=lambda: restart_device())
 
     with ui.card():
         ui.label(f"Hostname: {config['hostname']}")
