@@ -16,7 +16,7 @@ eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
 async def startup():
     asyncio.create_task(eom.run())
 
-# Configure dashboard GUI route
+# Configure dashboard GUI routes
 @get("/dashboard")
 async def dashboard() -> Template:
     return Template(
@@ -26,8 +26,19 @@ async def dashboard() -> Template:
         },
     )
 
+@get("/fragments/config")
+async def config_panel() -> Template:
+    config = await eom.get_config()
+
+    return Template(
+        "config_panel.html",
+        context={
+            "config": config
+        }
+    )
+
 # Routes for EdgeOMatic API
-@get("/config")
+@get("/api/config")
 async def get_config() -> EdgeOMaticConfig:
     return await eom.get_config()
 
@@ -39,11 +50,11 @@ async def get_config() -> EdgeOMaticConfig:
 #     eom.set_config(data)
 #     return {"status": "success"}
 
-@get("/readings")
+@get("/api/readings")
 async def get_readings() -> EdgeOMaticReadings:
     return await eom.get_readings()
 
-@get("/readings/history")
+@get("/api/readings/history")
 async def get_readings_history() -> deque:
     return await eom.get_readings_history()
 
@@ -67,12 +78,12 @@ async def get_readings_history() -> deque:
 #     result = eom.set_motor_speed(speed)
 #     return {"status": "success", "result": result}
 
-@post("/restart")
+@post("/api/restart")
 async def restart_device() -> Dict[str, Any]:
     result = await eom.restart()
     return {"status": "success", "result": result}
 
-@get("/info")
+@get("/api/info")
 async def get_info() -> EdgeOMaticInfo:
     """Get information about the EdgeOMatic device."""
     return await eom.get_info()
@@ -97,7 +108,8 @@ app = Litestar(
         # set_motor_speed, 
         restart_device, 
         get_info,
-        dashboard
+        dashboard,
+        config_panel
     ],
     # on_shutdown=[on_shutdown],
     on_startup=[startup],
