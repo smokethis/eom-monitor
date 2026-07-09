@@ -3,6 +3,7 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.4" integrity="sha384-A986SAtodyH8eg8x8irJnYUk7i9inVQqYigD6qZ9evobksGNIXfeFvDwLSHcp31N" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>{{ title }}</title>
 </head>
 
@@ -48,5 +49,66 @@
     </p>
     
 </div>
+<div>
+  <canvas id="myChart"></canvas>
+</div>
+
+<script>
+    const ctx = document.getElementById('myChart');
+
+    const maxPoints = 120; // 120 seconds-ish
+    const pressureData = [];
+
+    const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        datasets: [
+        {
+            label: 'Pressure',
+            data: pressureData,
+            borderWidth: 2,
+            pointRadius: 0,
+            tension: 0.2
+        }
+        ]
+    },
+    options: {
+        animation: false,
+        parsing: false,
+        scales: {
+        x: {
+            type: 'linear',
+            title: {
+            display: true,
+            text: 'Seconds'
+            }
+        },
+        y: {
+            beginAtZero: true
+        }
+        }
+    }
+    });
+
+    const source = new EventSource('/api/events');
+
+    source.addEventListener('message', event => {
+    const data = JSON.parse(event.data);
+
+    pressureData.push({
+        x: data.millis / 1000,
+        y: data.pressure
+    });
+
+    while (pressureData.length > maxPoints) {
+        pressureData.shift();
+    }
+    });
+
+    setInterval(() => {
+        chart.update('none');
+        }, 200);
+</script>
+
 </body>
 </html>
