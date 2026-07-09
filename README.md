@@ -45,7 +45,7 @@ eom: EdgeOMatic = EdgeOMatic("your_device_ip", your_device_port)
 2. Start the API server:
 
 ```bash
-litestar --app app:app run
+litestar --app backend:app run
 ```
 
 3. Access the API at `http://localhost:8000`
