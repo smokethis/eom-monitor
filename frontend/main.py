@@ -1,10 +1,7 @@
 from nicegui import ui
-import httpx
 import json
-import asyncio
 from api.client import DeviceAPI
 from services.event_stream import EventStream
-from components.config_card import ConfigCard
 from components.dashboard import Dashboard
 
 client = DeviceAPI()
@@ -41,7 +38,7 @@ async def root():
     ui.context.client.on_disconnect(
         dashboard.cleanup
     )
-    
+
 ui.run(
     host="0.0.0.0",
     port=8080
