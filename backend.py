@@ -20,40 +20,40 @@ async def startup():
     asyncio.create_task(eom.run())
 
 # Configure dashboard GUI routes
-@get("/dashboard")
-async def dashboard() -> Template:
-    return Template(
-        template_name="dashboard.html",
-        context={
-            "title": "EOM Monitor",
-        },
-    )
+# @get("/dashboard")
+# async def dashboard() -> Template:
+#     return Template(
+#         template_name="dashboard.html",
+#         context={
+#             "title": "EOM Monitor",
+#         },
+#     )
 
-@get("/fragments/config")
-async def config_panel() -> Template:
-    config = await eom.get_config()
+# @get("/fragments/config")
+# async def config_panel() -> Template:
+#     config = await eom.get_config()
 
-    return Template(
-        "config_panel.html",
-        context={
-            "config": config
-        }
-    )
+#     return Template(
+#         "config_panel.html",
+#         context={
+#             "config": config
+#         }
+#     )
 
-@get("/fragments/events")
-async def events_panel(reading: dict) -> Template:
-    return Template(
-        template_name="events_panel.html",
-        context={
-            "events": reading,
-        },
-    )
+# @get("/fragments/events")
+# async def events_panel(reading: dict) -> Template:
+#     return Template(
+#         template_name="events_panel.html",
+#         context={
+#             "events": reading,
+#         },
+#     )
 
-@get("/fragments/chart")
-async def chart_panel() -> Template:
-    return Template(
-        template_name="chart_panel.html"
-    )
+# @get("/fragments/chart")
+# async def chart_panel() -> Template:
+#     return Template(
+#         template_name="chart_panel.html"
+#     )
 
 @get("/api/events")
 async def events() -> ServerSentEvent:
@@ -175,9 +175,9 @@ app = Litestar(
         # set_motor_speed, 
         restart_device, 
         get_info,
-        dashboard,
-        config_panel,
-        chart_panel,
+        # dashboard,
+        # config_panel,
+        # chart_panel,
         events_html,
         events
     ],
