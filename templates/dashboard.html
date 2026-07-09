@@ -56,7 +56,7 @@
 <script>
     const ctx = document.getElementById('myChart');
 
-    const maxPoints = 120; // 120 seconds-ish
+    const windowSeconds = 60; // draw only last x seconds of data
     const pressureData = [];
 
     const chart = new Chart(ctx, {
@@ -99,14 +99,24 @@
         x: data.millis / 1000,
         y: data.pressure
     });
-
-    while (pressureData.length > maxPoints) {
-        pressureData.shift();
-    }
     });
 
     setInterval(() => {
+        if (pressureData.length === 0) return;
+
+        const latestTime = pressureData[pressureData.length - 1].x;
+        const cutoff = latestTime - windowSeconds;
+
+        while (pressureData.length &&
+                pressureData[0].x < cutoff) {
+            pressureData.shift();
+        }
+
+        chart.options.scales.x.min = cutoff;
+        chart.options.scales.x.max = latestTime;
+
         chart.update('none');
+
         }, 200);
 </script>
 
