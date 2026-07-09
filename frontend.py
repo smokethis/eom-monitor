@@ -63,15 +63,16 @@ async def root():
         ui.label(f"Arousal Threshold: {config['sensitivity_threshold']}")
         ui.label(f"Sensor Sensitivity: {config['sensor_sensitivity']}")
 
-    events = ui.column()
+    latest_event = ui.code("Waiting for events...", language="json")
 
     async def handle_event(event):
 
         if not alive:
             return
-        
-        with events:
-            ui.label(json.dumps(event))
+            
+        with latest_event:
+            latest_event.content = json.dumps(event, indent=2)
+            latest_event.update()
     
     task = asyncio.create_task(listen_for_events(handle_event))
 
