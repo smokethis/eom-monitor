@@ -5,7 +5,7 @@ import asyncio
 
 LITESTAR_BASE = "http://localhost:8000/"
 
-# Generic API data GET function
+# Generic API GET function
 async def api_get(path):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{LITESTAR_BASE}{path}")
@@ -18,7 +18,7 @@ async def api_get(path):
 
         return response.json()
 
-# Generic API data POST function
+# Generic API POST function
 async def api_post(path):
     async with httpx.AsyncClient() as client:
         response = await client.post(f"{LITESTAR_BASE}{path}")
