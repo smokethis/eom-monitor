@@ -8,6 +8,9 @@ from typing import Dict, Any
 from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo, EdgeOMaticReadingsBus
 import logging
 import asyncio
+import msgspec
+
+json_encoder = msgspec.json.Encoder()
 
 logging.basicConfig(level=logging.INFO)
 eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
@@ -47,8 +50,7 @@ async def events() -> ServerSentEvent:
         try:
             while True:
                 reading = await queue.get()
-
-                yield reading
+                yield json_encoder.encode(reading).decode()
 
         finally:
             eom.readings_bus.unsubscribe(queue)
@@ -107,14 +109,9 @@ async def get_info() -> EdgeOMaticInfo:
     """Get information about the EdgeOMatic device."""
     return await eom.get_info()
 
-# Create a lifecycle hook to close the connection when the app shuts down
-# def on_shutdown() -> None:
-#     global eom
-#     if eom is not None:
-#         try:
-#             eom.restart()
-#         except Exception as e:
-#             logging.error(f"Error during shutdown: {e}")
+# Close the connection on shutdown
+async def shutdown() -> None:
+    await eom.close()
 
 # Litestar app configuration
 app = Litestar(
@@ -131,7 +128,7 @@ app = Litestar(
         config_panel,
         events
     ],
-    # on_shutdown=[on_shutdown],
+    on_shutdown=[shutdown],
     on_startup=[startup],
     template_config=TemplateConfig(
         directory=Path("templates"),

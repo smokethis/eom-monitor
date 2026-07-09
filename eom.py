@@ -5,7 +5,6 @@ from enum import Enum
 import logging
 import asyncio
 from collections import deque
-from nicegui import Event, app, binding
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -75,7 +74,6 @@ class EdgeOMaticConfig(Struct):
     od_clench_arousal_boost: bool
     od_clench_arousal_boost_amount: int
     od_detection_armed: bool
-
 
 class EdgeOMaticReadings(Struct):
     pressure: int
@@ -233,6 +231,19 @@ class EdgeOMatic:
         await self.send({
             "restart": None
         })
+
+    async def close(self) -> None:
+        if self.ws is not None:
+            # logger.info("Closing connection")
+            # await self.ws.close()
+            # self.ws = None
+            # logger.info("Connection closed")
+            """ We can't close the connection gracefully right now- there's no closereply from 
+            the EOM in firmware v2.0.0, and it looks like there might be a silent leak or 
+            other issue somewhere as the HTTP server eventually falls over after too many connections.
+            Insetad we'll issue a device reset command to force a clean break """
+            logger.info("Request to close received, restarting device...")
+            await self.restart()
 
     async def run(self):
         while True:
