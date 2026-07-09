@@ -50,7 +50,11 @@ async def events() -> ServerSentEvent:
         try:
             while True:
                 reading = await queue.get()
-                yield json_encoder.encode(reading).decode()
+                yield {
+                    "event": "message",
+                    "data": json_encoder.encode(reading).decode()
+                    }
+                # yield json_encoder.encode(reading).decode()
 
         finally:
             eom.readings_bus.unsubscribe(queue)

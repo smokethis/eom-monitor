@@ -1,8 +1,8 @@
 <!doctype html>
 <html>
 <head>
-    <script src="https://unpkg.com/htmx.org"></script>
-    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.10/dist/htmx.min.js" integrity="sha384-H5SrcfygHmAuTDZphMHqBJLc3FhssKjG7w/CeCpFReSfwBWDTKpkzPP8c+cLsK+V" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.4" integrity="sha384-A986SAtodyH8eg8x8irJnYUk7i9inVQqYigD6qZ9evobksGNIXfeFvDwLSHcp31N" crossorigin="anonymous"></script>
     <title>{{ title }}</title>
 </head>
 
@@ -18,14 +18,19 @@
     </div>
 
 </div>
-<div hx-ext="sse"
-     sse-connect="/api/events">
+<div>
+    <h2>Message Stream</h2>
 
     <div id="messages"
-         sse-swap="message">
+        hx-ext="sse"
+        sse-connect="/api/events"
+        sse-swap="message">
     </div>
-
 </div>
-
+<style>
+#messages {
+    white-space: pre-wrap;
+}
+</style>
 </body>
 </html>
