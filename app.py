@@ -58,8 +58,8 @@ def get_readings_history() -> deque:
 #     return {"status": "success", "result": result}
 
 @post("/restart")
-def restart_device() -> Dict[str, Any]:
-    result = eom.restart()
+async def restart_device() -> Dict[str, Any]:
+    result = await eom.restart()
     return {"status": "success", "result": result}
 
 @get("/info")
