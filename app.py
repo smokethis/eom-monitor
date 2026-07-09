@@ -40,7 +40,7 @@ async def config_panel() -> Template:
         }
     )
 
-@get("/dashboard/events")
+@get("/api/events")
 async def events() -> ServerSentEvent:
 
     queue = eom.readings_bus.subscribe()

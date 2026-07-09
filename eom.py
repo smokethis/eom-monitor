@@ -238,9 +238,9 @@ class EdgeOMatic:
             # await self.ws.close()
             # self.ws = None
             # logger.info("Connection closed")
-            """ We can't close the connection gracefully right now- there's no closereply from 
+            """ We can't close the connection gracefully right now, there's no close reply from 
             the EOM in firmware v2.0.0, and it looks like there might be a silent leak or 
-            other issue somewhere as the HTTP server eventually falls over after too many connections.
+            other issue somewhere as the HTTP server eventually falls over after too many app restarts.
             Insetad we'll issue a device reset command to force a clean break """
             logger.info("Request to close received, restarting device...")
             await self.restart()
