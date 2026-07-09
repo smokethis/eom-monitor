@@ -7,7 +7,13 @@ LITESTAR_BASE = "http://localhost:8000/"
 async def api_get(path):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"{LITESTAR_BASE}{path}")
-        response.raise_for_status()
+
+        if response.is_error:
+            return {
+                "status": response.status_code,
+                "error": response.text
+            }
+
         return response.json()
 
 def show_json(data):
@@ -16,7 +22,7 @@ def show_json(data):
         language="json"
     )
 
-@ui.page("/api/{endpoint}")
+@ui.page("/api/{endpoint:path}")
 async def api_viewer(endpoint: str):
 
     ui.label(f"/api/{endpoint}").classes("text-3xl")
