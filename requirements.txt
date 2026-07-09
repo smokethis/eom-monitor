@@ -2,3 +2,4 @@ litestar[standard]
 granian
 msgspec
 websockets
+jinja2

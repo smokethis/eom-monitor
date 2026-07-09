@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+    <title>{{ title }}</title>
+</head>
+
+<body>
+
+<h1>{{ title }}</h1>
+
+<div>
+    <h2>Device Configuration</h2>
+
+    <p>Hostname: <span id="hostname">Loading...</span></p>
+    <p>Arousal Threshold: <span id="sensitivity_threshold">Loading...</span></p>
+    <p>Sensitivity: <span id="sensor_sensitivity">Loading...</span></p>
+
+</div>
+
+
+<script>
+async function loadConfig() {
+
+    const response = await fetch("/config");
+    const config = await response.json();
+
+    document.getElementById("hostname").textContent =
+        config.hostname;
+
+    document.getElementById("sensitivity_threshold").textContent =
+        config.sensitivity_threshold;
+
+    document.getElementById("sensor_sensitivity").textContent =
+        config.sensor_sensitivity;
+}
+
+loadConfig();
+
+</script>
+
+</body>
+</html>

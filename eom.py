@@ -5,6 +5,7 @@ from enum import Enum
 import logging
 import asyncio
 from collections import deque
+from nicegui import Event, app, binding
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -117,6 +118,9 @@ class EdgeOMatic:
         self._latest_reading = None
         self._reading_history = deque(maxlen=100)
 
+        self.log_message = Event[str]()
+        '''A log message to be displayed in the UI (argument: message).'''
+
     async def send(self, payload: dict):
         if self.ws is None:
             raise RuntimeError("Websocket not connected")
@@ -161,7 +165,7 @@ class EdgeOMatic:
 
         msg = msgspec.json.decode(message, type=object)
 
-        for key, value in msg.items():
+        for key, value in msg.items(): # type: ignore
 
             # Request/response path
             pending = self._pending.pop(key, None)
@@ -207,10 +211,10 @@ class EdgeOMatic:
             EdgeOMaticReadings,
         )
     
-    def get_readings_history(self):
+    async def get_readings_history(self):
         return self._reading_history
 
-    async def restart(self):
+    async def restart(self) -> None:
         await self.send({
             "restart": None
         })

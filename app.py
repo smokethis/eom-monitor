@@ -1,11 +1,11 @@
 from litestar import Litestar, get, post
-from eom import EdgeOMatic
+from litestar.template.config import TemplateConfig
+from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.response import Template
+from pathlib import Path
 from collections import deque
-
-# from litestar.datastructures import State
-# from litestar.di import Provide
-from typing import Annotated, Dict, Any
-from eom import EdgeOMaticConfig, ControlMode, EdgeOMaticReadings, EdgeOMaticInfo
+from typing import Dict, Any
+from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo
 import logging
 import asyncio
 
@@ -15,6 +15,16 @@ eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
 # Define Startup Logic
 async def startup():
     asyncio.create_task(eom.run())
+
+# Configure dashboard GUI route
+@get("/dashboard")
+async def dashboard() -> Template:
+    return Template(
+        template_name="dashboard.html",
+        context={
+            "title": "EOM Monitor",
+        },
+    )
 
 # Routes for EdgeOMatic API
 @get("/config")
@@ -34,8 +44,8 @@ async def get_readings() -> EdgeOMaticReadings:
     return await eom.get_readings()
 
 @get("/readings/history")
-def get_readings_history() -> deque:
-    return eom.get_readings_history()
+async def get_readings_history() -> deque:
+    return await eom.get_readings_history()
 
 # @post("/mode/{mode:str}")
 # async def set_mode(
@@ -76,7 +86,7 @@ async def get_info() -> EdgeOMaticInfo:
 #         except Exception as e:
 #             logging.error(f"Error during shutdown: {e}")
 
-# App configuration
+# Litestar app configuration
 app = Litestar(
     route_handlers=[
         get_config, 
@@ -86,8 +96,13 @@ app = Litestar(
         # set_mode, 
         # set_motor_speed, 
         restart_device, 
-        get_info
+        get_info,
+        dashboard
     ],
     # on_shutdown=[on_shutdown],
-    on_startup=[startup]
+    on_startup=[startup],
+    template_config=TemplateConfig(
+        directory=Path("templates"),
+        engine=JinjaTemplateEngine,
+    ),
 )
