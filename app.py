@@ -1,11 +1,11 @@
 from litestar import Litestar, get, post
 from litestar.template.config import TemplateConfig
 from litestar.contrib.jinja import JinjaTemplateEngine
-from litestar.response import Template
+from litestar.response import Template, ServerSentEvent
 from pathlib import Path
 from collections import deque
 from typing import Dict, Any
-from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo
+from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo, EdgeOMaticReadingsBus
 import logging
 import asyncio
 
@@ -36,6 +36,25 @@ async def config_panel() -> Template:
             "config": config
         }
     )
+
+@get("/dashboard/events")
+async def events() -> ServerSentEvent:
+
+    queue = eom.readings_bus.subscribe()
+    logging.debug("Subscriber Joined Queue")
+
+    async def stream():
+        try:
+            while True:
+                reading = await queue.get()
+
+                yield reading
+
+        finally:
+            eom.readings_bus.unsubscribe(queue)
+            logging.debug("Subscriber Left Queue")
+
+    return ServerSentEvent(stream())
 
 # Routes for EdgeOMatic API
 @get("/api/config")
@@ -109,7 +128,8 @@ app = Litestar(
         restart_device, 
         get_info,
         dashboard,
-        config_panel
+        config_panel,
+        events
     ],
     # on_shutdown=[on_shutdown],
     on_startup=[startup],

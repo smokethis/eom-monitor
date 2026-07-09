@@ -2,6 +2,7 @@
 <html>
 <head>
     <script src="https://unpkg.com/htmx.org"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
     <title>{{ title }}</title>
 </head>
 
@@ -14,6 +15,14 @@
 
     <div hx-get="/fragments/config" hx-trigger="load">
         Loading...
+    </div>
+
+</div>
+<div hx-ext="sse"
+     sse-connect="/dashboard/events">
+
+    <div id="messages"
+         sse-swap="message">
     </div>
 
 </div>

@@ -108,6 +108,22 @@ class EdgeOMaticWifiStatus(Struct): # Defaults because there may not be any info
     ip: str = ""
     rssi: int = -1
 
+class EdgeOMaticReadingsBus:
+    def __init__(self):
+        self._subscribers: set[asyncio.Queue] = set()
+
+    def subscribe(self) -> asyncio.Queue:
+        queue = asyncio.Queue()
+        self._subscribers.add(queue)
+        return queue
+
+    def unsubscribe(self, queue: asyncio.Queue):
+        self._subscribers.remove(queue)
+
+    async def publish(self, reading):
+        for queue in self._subscribers:
+            await queue.put(reading)
+
 class EdgeOMatic:
     def __init__(self, ip: str, port: int):
         self.uri = f"ws://{ip}:{port}/"
@@ -115,11 +131,9 @@ class EdgeOMatic:
         self.config = None
         self._pending: dict[str, tuple[asyncio.Future, type]] = {}
         self._request_lock = asyncio.Lock()
-        self._latest_reading = None
-        self._reading_history = deque(maxlen=100)
-
-        self.log_message = Event[str]()
-        '''A log message to be displayed in the UI (argument: message).'''
+        self.latest_reading = None
+        self.reading_history = deque(maxlen=100)
+        self.readings_bus = EdgeOMaticReadingsBus()
 
     async def send(self, payload: dict):
         if self.ws is None:
@@ -179,8 +193,9 @@ class EdgeOMatic:
             # Event path
             if key == "readings":
                 reading = msgspec.convert(value, type=EdgeOMaticReadings)
-                self._latest_reading = reading
-                self._reading_history.append(reading)
+                self.latest_reading = reading
+                self.reading_history.append(reading)
+                await self.readings_bus.publish(reading)
                 continue
 
             if key == "wifiStatus":
@@ -212,7 +227,7 @@ class EdgeOMatic:
         )
     
     async def get_readings_history(self):
-        return self._reading_history
+        return self.reading_history
 
     async def restart(self) -> None:
         await self.send({
