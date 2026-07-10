@@ -7,6 +7,7 @@ import asyncio
 from collections import deque
 from enum import Enum
 import socket
+import time
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -143,6 +144,8 @@ class EdgeOMaticStatus(Enum):
 class EdgeOMatic: # Main object that runs the show
     def __init__(self, ip: str, port: int):
         self.uri = f"ws://{ip}:{port}/"
+        self.ip = ip
+        self.port = port
         self.readings = None
         self._config = None
         self._info = None
@@ -160,6 +163,27 @@ class EdgeOMatic: # Main object that runs the show
     @property
     def info(self):
         return self._info
+    
+    def port_probe(self):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex((self.ip, self.port))
+            sock.close()
+            return result == 0
+        except:
+            return False
+
+    def wait_for_device(self, timeout=30):
+        deadline = time.monotonic() + timeout
+
+        while time.monotonic() < deadline:
+            if self.port_probe():
+                return True
+
+            time.sleep(1)
+
+        return False
 
     async def _send(self, payload: dict):
         if self.ws is None:
@@ -264,23 +288,39 @@ class EdgeOMatic: # Main object that runs the show
     async def get_reading_history(self):
         return self.reading_history
 
-    async def restart(self) -> None:
+    async def restart(self) -> bool:
+        logger.info("Sending restart command...")
         await self._send({
             "restart": None
         })
+        # Yield to asyncio for a bit to try and empty any ready tasks including restart to mitigate early false positives in the port probe loop
+        await asyncio.sleep(0)
+        await asyncio.sleep(1)
+        # Start probing for port 80
+        logger.info("Starting port probe loop...")
+        r = self.wait_for_device(timeout=10) # This is deliberately blocking to ensure we do nothing else until a response or timeout
+        # Return result to caller
+        if r != False:
+            logger.info("Port 80 re-opened. Exiting.")
+            # The server looks alive again, confirm
+            return True
+        else:
+            logger.error("Webserver never recovered. Check device.")
+            # The server appears dead, fail
+            return False
 
     async def close(self) -> None:
         if self.ws is not None:
-            # logger.info("Closing connection")
-            # await self.ws.close()
-            # self.ws = None
-            # logger.info("Connection closed")
-            """ We can't close the connection gracefully right now, there's no close reply from 
-            the EOM in firmware v2.0.0, and it looks like there might be a silent leak or 
-            other issue somewhere as the HTTP server eventually falls over after too many app restarts.
-            Insetad we'll issue a device reset command to force a clean break """
-            logger.info("Request to close received, restarting device...")
+            """ We can't close the connection gracefully right now, ws.close() doesn't work and
+             there is a socket leak in the EOM v2.0.0 firmware; no matter what you do you will reach
+             the 3 socket maximum at some point and the HTTP server will stop new connections. 
+             Instead we reset the device and then force Litestar to terminate the transport to ensure 
+             a clean break from both sides. This doesn't work once a stream has started though. So 
+             good luck figuring that out. Best idea is to force Litestar/Uvicron to end, reconnect and
+             manually trigger a restart to restore order. Sigh."""
+            logger.info("Request to close received...")
             await self.restart()
+            self.ws.transport.close()
 
     async def _reader(self):
 

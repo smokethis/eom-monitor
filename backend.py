@@ -107,9 +107,8 @@ async def get_reading_history() -> deque:
 #     return {"status": "success", "result": result}
 
 @post("/api/restart")
-async def restart_device() -> Dict[str, Any]:
-    result = await eom.restart()
-    return {"status": "success", "result": result}
+async def restart_device() -> None:
+    await eom.restart()
 
 # Close the connection on shutdown
 async def shutdown() -> None:
