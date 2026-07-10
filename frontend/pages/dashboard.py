@@ -1,6 +1,6 @@
 import json
 from nicegui import ui
-from components.config_card import ConfigCard
+from widgets.config_card import ConfigCard
 
 class Dashboard:
     def __init__(self, client, stream):

@@ -2,7 +2,8 @@ from nicegui import ui
 import json
 from api.client import DeviceAPI
 from services.event_stream import EventStream
-from components.dashboard import Dashboard
+from pages.dashboard import Dashboard
+from pages.layout import Layout
 
 client = DeviceAPI()
 stream = EventStream()
@@ -28,12 +29,11 @@ async def api_viewer(endpoint: str):
 @ui.page("/")
 async def root():
 
-    dashboard = Dashboard(
-        client,
-        stream
-    )
+    layout = Layout()
 
-    await dashboard.render()
+    with layout.content:
+        dashboard = Dashboard(client, stream)
+        await dashboard.render()
 
     ui.context.client.on_disconnect(
         dashboard.cleanup
