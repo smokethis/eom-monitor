@@ -103,11 +103,11 @@ async def shutdown() -> None:
 # Litestar app configuration
 app = Litestar(
     route_handlers=[
-        get_config, 
+        config, 
         get_readings,
         get_readings_history,
         restart_device, 
-        get_info,
+        info,
         events,
         # set_mode, 
         # set_motor_speed,
