@@ -27,7 +27,7 @@ async def startup():
 
 # Readings API Endpoint.
 @get("/api/readings")
-async def events() -> ServerSentEvent:
+async def get_readings() -> ServerSentEvent:
 
     queue = eom.readings_bus.subscribe()
     logging.debug("Subscriber Joined Queue")
@@ -49,11 +49,11 @@ async def events() -> ServerSentEvent:
 
 # Static API Endpoints
 @get("/api/config")
-async def config() -> Any:
+async def get_config() -> Any:
     return eom.config
 
 @get("/api/info")
-async def info() -> Any:
+async def get_info() -> Any:
     return eom.info
 
 @post("/api/start_stream")
@@ -117,13 +117,13 @@ async def shutdown() -> None:
 # Litestar app configuration
 app = Litestar(
     route_handlers=[
-        config, 
+        get_config, 
         get_reading,
         get_reading_history,
         restart_device,
         start_stream,
-        info,
-        events,
+        get_info,
+        get_readings,
         # set_mode, 
         # set_motor_speed,
         # set_config

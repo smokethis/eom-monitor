@@ -1,6 +1,6 @@
 from nicegui import ui
 
-class ConfigCard:
+class InfoCard:
 
     def __init__(self, config):
         self.config = config

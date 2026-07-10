@@ -1,6 +1,6 @@
 import json
 from nicegui import ui
-from widgets.config_card import ConfigCard
+from frontend.widgets.info_card import InfoCard
 
 class Dashboard:
     def __init__(self, client, stream):
@@ -26,7 +26,7 @@ class Dashboard:
             )
 
         with ui.row():
-            ConfigCard(config).render()
+            InfoCard(config).render()
             self.latest_event = ui.code("Waiting for events...",language="json")
 
         self.stream.subscribe(self.handle_event)
