@@ -2,6 +2,5 @@ litestar[standard]
 granian
 msgspec
 websockets
-jinja2
 nicegui
 httpx

@@ -13,31 +13,30 @@ A Python-based REST API for controlling and monitoring EdgeOMatic devices via We
 
 ## 📋 Requirements
 
-- Python 3.7+
+- Python 3.14+
 - `msgspec` library
-- `websocket-client` library
+- `websockets` library
 - `litestar` web framework
+- `nicegui` front end
+- `httpx` used by nicegui
 
-## 🔧 Installation
-
-```bash
-# Install dependencies
-uv pip install msgspec websocket-client litestar granian
-
-# Run the API
-granian rest:app --interface asgi
-```
-
-I don't understand why this is here, it works but so what?
+## Fixes
+- Migrated the project to `websockets` - the upstream repository used websocket-client which isn't very good at asynchronous operation.
+- Refactored all websocket routines to be non-blocking.
+- Updated the schema of responses to be firmware v2.0.0 compliant.
+- Refactored the API endpoints to be more understandable.
+- Added a rudimentary `nicegui` front end to visualise data being exposed by Litestar.
+- Defended against race condition in the EOM 3000 websocket handler (see known issues).
 
 ## Known Issues
-- Sometimes the device's display will freeze, not responding to button presses, while the server is running. Sending a Restart request usually works to solve this. It's unknown as of yet whether the device continues to function while the display is frozen.
-- On repeated starts and stops of the server, the device will simply stop accepting connections. The cause is as of yet unknown but we suspect limitations with the ESP32 radio. If this occurs, unplug the device, plug it back in, and wait a few minutes; it will initially fail to connect to WiFi but this will resolve itself.
+- I've traced the source of the connection refusal behaviour; its a result of a race condition in the EOM websocket_handler.c. Once a streaming broadcast has been initiated, sending any other data-producing request to the device has a chance to produce an invalid websocket frame; in short websocket_handler.c can produce a "nested" response (header1, header2, payload2, payload1) which is illegal and a 1002 gets sent to the device immediatley to terminate the connection which is standard practice with a corrupt stream.
+There is never an acknowledgement to the 1002 though which is suspicious; I wonder if the old connection isn't being cleaned up properly from that termination even though you can launch a new one shortly after, and you eventually get resource exhaustion and the HTTP server falls over.
+- To protect against this unintended behaviour, this app has been programmed to never issue a "bad" request to the websocket connection once a stream has commenced. To terminate the stream the device must be reset.
+- The EOM 3000 doesn't appear to respond to websocket commands like close properly. They appear to work but no response is ever generated. This still needs further investigation, for now best approach is to issue a device reset when wanting to return to a known good state.
 
 ## 🚀 Quick Start
 
-1. Configure your EdgeOMatic device IP and port in `rest.py`:
-
+1. Configure your EdgeOMatic device IP and port in `eom.py`:
 ```python
 eom: EdgeOMatic = EdgeOMatic("your_device_ip", your_device_port)
 ```
