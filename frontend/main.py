@@ -19,11 +19,14 @@ def show_json(data):
 @ui.page("/api/{endpoint:path}")
 async def api_viewer(endpoint: str):
 
-    ui.label(f"/api/{endpoint}").classes("text-3xl")
+    layout = Layout()
 
-    data = await client.get_api(endpoint)
+    with layout.content:
+        ui.label(f"/api/{endpoint}").classes("text-3xl")
 
-    show_json(data)
+        data = await client.get_api(endpoint)
+
+        show_json(data)
 
 # Root page
 @ui.page("/")
