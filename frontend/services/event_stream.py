@@ -37,7 +37,7 @@ class EventStream:
 
             async with client.stream(
                 "GET",
-                f"{LITESTAR_BASE}/api/events"
+                f"{LITESTAR_BASE}/api/readings"
             ) as response:
 
                 async for line in response.aiter_lines():

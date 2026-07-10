@@ -43,7 +43,7 @@ EOM_PORT = 80
 ```
 Rename the included `.env.example` if needed.
 
-2. Start the API server:
+2. Start the backend API server:
 
 ```bash
 litestar --app backend:app run
@@ -55,37 +55,38 @@ litestar --app backend:app run
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/config` | GET | Retrieve current device configuration |
-| `/config` | POST | Update device configuration |
-| `/readings` | GET | Get real-time device readings |
-| `/mode/{mode}` | POST | Set the control mode (MANUAL_CONTROL, AUTOMAITC_CONTROL, ORGASM_MODE) |
-| `/motor/{speed}` | POST | Set the motor speed (0-255) |
-| `/restart` | POST | Restart the device |
-| `/info` | GET | Get device information |
+| `/api/config` | GET | Retrieve current device configuration |
+| `/api/info` | GET | Get device information |
+| `/api/reading` | GET | Get last device reading |
+| `/api/reading/history` | GET | Get last 100 device readings |
+| `/api/readings` | GET | Streaming-enabled endpoint which returns readings continuously |
+| `/api/start_stream` | POST | Start streaming readings |
+| `/api/restart` | POST | Restart the device |
+
 
 ## 💡 Usage Examples
 
 ### Get Device Configuration
 
 ```bash
-curl http://localhost:8000/config
+curl http://localhost:8000/api/config
 ```
 
-### Update Configuration
+<!-- ### Update Configuration
 
 ```bash
 curl -X POST http://localhost:8000/config \
   -H "Content-Type: application/json" \
   -d '{"motor_max_speed": 200, "sensitivity_threshold": 50, ...}'
-```
+``` -->
 
-### Get Current Readings
+<!-- ### Get Current Readings
 
 ```bash
 curl http://localhost:8000/readings
-```
+``` -->
 
-### Set Control Mode
+<!-- ### Set Control Mode
 
 ```bash
 curl -X POST http://localhost:8000/mode/XXX
@@ -95,8 +96,8 @@ curl -X POST http://localhost:8000/mode/XXX
 
 ```bash
 curl -X POST http://localhost:8000/motor/XXX
-```
-
+``` -->
+<!-- 
 ## 🧠 Core Components
 
 ### EdgeOMatic Class
@@ -111,7 +112,7 @@ The `EdgeOMatic` class in `eom.py` provides the foundation for device communicat
 
 ### REST API
 
-Built with Litestar, the API in `rest.py` offers a user-friendly interface to interact with the device from any HTTP client.
+Built with Litestar, the API in `rest.py` offers a user-friendly interface to interact with the device from any HTTP client. -->
 
 ## ⚠️ Important Notes
 

@@ -21,7 +21,7 @@ async def startup():
     asyncio.create_task(eom.run()) ### Needs a way to handle connection failures but I can't be arsed right now
 
 # Events API Endpoint.
-@get("/api/events")
+@get("/api/readings")
 async def events() -> ServerSentEvent:
 
     queue = eom.readings_bus.subscribe()
