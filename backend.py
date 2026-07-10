@@ -20,7 +20,7 @@ async def startup():
     if not eom.state == EdgeOMaticStatus.READY:
         logging.error("Device not ready.")
 
-# Events API Endpoint
+# Events API Endpoint.
 @get("/api/events")
 async def events() -> ServerSentEvent:
 
@@ -44,16 +44,16 @@ async def events() -> ServerSentEvent:
 
 # Static API Endpoints
 @get("/api/config")
-async def config():
+async def config() -> Any:
     return eom.config
 
 @get("/api/info")
-async def info():
+async def info() -> Any:
     return eom.info
 
-@post("/api/start_streaming")
-async def start_stream():
-    await eom.start_readings
+@post("/api/start_stream")
+async def start_stream() -> None:
+    await eom.start_readings()
 
 # @post("/config")
 # async def set_config(
@@ -106,7 +106,8 @@ app = Litestar(
         config, 
         get_readings,
         get_readings_history,
-        restart_device, 
+        restart_device,
+        start_stream,
         info,
         events,
         # set_mode, 

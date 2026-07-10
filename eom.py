@@ -242,11 +242,9 @@ class EdgeOMatic: # Main object that runs the show
             EdgeOMaticInfo,
         )
     
-    async def start_readings(self) -> EdgeOMaticReadings:
-        return await self._request(
-            "readings",
-            {"streamReadings": None}, # Yes, the trigger message is different to the received schema. I hate it
-            EdgeOMaticReadings,
+    async def start_readings(self) -> None:
+        await self._send(
+            {"streamReadings": None} # Yes, the trigger message is different to the received schema. I hate it
         )
     
     async def get_readings_history(self):
@@ -290,13 +288,15 @@ class EdgeOMatic: # Main object that runs the show
 
                     self.state = EdgeOMaticStatus.CONFIGURING
 
+                    reader = asyncio.create_task(self._reader())
+
                     self._config = await self._request_config()
                     self._info = await self._request_info()
 
                     self.state = EdgeOMaticStatus.READY
                     
                     await asyncio.gather(
-                        self._reader(),
+                        reader,
                         # self._writer(),
                     )
 
