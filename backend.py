@@ -12,9 +12,6 @@ json_encoder = msgspec.json.Encoder()
 logging.basicConfig(level=logging.INFO)
 eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
 
-class TerminalError(Exception):
-    pass
-
 # Define Startup Logic
 async def startup():
     # Connect and start up
