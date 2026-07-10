@@ -11,6 +11,9 @@ from enum import Enum
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
 
+# Enable this if needing to debug
+# logger.setLevel(logging.DEBUG)
+
 class ControlMode(Enum):
     Manual = "MANUAL_CONTROL"
     Automatic = "AUTOMAITC_CONTROL"
@@ -253,6 +256,7 @@ class EdgeOMatic: # Main object that runs the show
         await self._send(
             {"streamReadings": None} # Yes, the trigger message is different to the received schema. I hate it
         )
+        self.state = EdgeOMaticStatus.STREAMING
     
     async def get_reading(self):
         return self.latest_reading

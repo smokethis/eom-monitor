@@ -9,16 +9,20 @@ import asyncio
 import msgspec
 import os
 
+# Set this when debugging. Save me from stupid software
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+
 json_encoder = msgspec.json.Encoder()
 eom_ip = os.environ["EOM_IP"]
 eom_port = int(os.environ["EOM_PORT"])
 
-logging.basicConfig(level=logging.INFO)
 eom: EdgeOMatic = EdgeOMatic(eom_ip, eom_port)
 
 # Define Startup Logic
 async def startup():
     # Connect and start up
+    logging.debug("*** LITESTAR - DEBUG START CONFIRMED ***")
     asyncio.create_task(eom.run()) ### Needs a way to handle connection failures but I can't be arsed right now
 
 # Readings API Endpoint.
