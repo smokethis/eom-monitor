@@ -36,7 +36,7 @@ There is never an acknowledgement to the 1002 though which is suspicious; I wond
 
 ## 🚀 Quick Start
 
-1. Configure your EdgeOMatic device IP and port in `eom.py`:
+1. Configure your EdgeOMatic device IP and port in `backend.py`:
 ```python
 eom: EdgeOMatic = EdgeOMatic("your_device_ip", your_device_port)
 ```
