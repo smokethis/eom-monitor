@@ -1,6 +1,6 @@
-import msgspec
 from websockets.asyncio.client import connect
 from msgspec import Struct
+import msgspec
 from enum import Enum
 import logging
 import asyncio
