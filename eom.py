@@ -5,6 +5,8 @@ from enum import Enum
 import logging
 import asyncio
 from collections import deque
+from typing import Literal
+from enum import Enum
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -129,18 +131,34 @@ class EdgeOMaticReadingsBus:
 
             await queue.put(reading)
 
+class EdgeOMaticStatus(Enum):
+    DISCONNECTED = "DISCONNECTED"
+    CONFIGURING = "CONFIGURING"
+    READY = "READY"
+    STREAMING = "STREAMING"
+
 class EdgeOMatic: # Main object that runs the show
     def __init__(self, ip: str, port: int):
         self.uri = f"ws://{ip}:{port}/"
         self.readings = None
-        self.config = None
+        self._config = None
+        self._info = None
         self._pending: dict[str, tuple[asyncio.Future, type]] = {}
         self._request_lock = asyncio.Lock()
         self.latest_reading = None
         self.reading_history = deque(maxlen=100)
         self.readings_bus = EdgeOMaticReadingsBus()
+        self.state = EdgeOMaticStatus.DISCONNECTED
+    
+    @property
+    def config(self):
+        return self._config
+    
+    @property
+    def info(self):
+        return self._info
 
-    async def send(self, payload: dict):
+    async def _send(self, payload: dict):
         if self.ws is None:
             raise RuntimeError("Websocket not connected")
 
@@ -151,7 +169,7 @@ class EdgeOMatic: # Main object that runs the show
 
         await self.ws.send(data)
     
-    async def request(self, response_name: str, payload: dict, response_type: type):
+    async def _request(self, response_name: str, payload: dict, response_type: type):
         async with self._request_lock:
             logger.debug("Requesting %s", response_name)
             # Create a future
@@ -163,7 +181,7 @@ class EdgeOMatic: # Main object that runs the show
             )
             # Send the payload
             logger.debug("Sending %s", payload)
-            await self.send(payload)
+            await self._send(payload)
             # Start a timer to wait for a response
             try:
                 logger.debug("Waiting for %s", response_name)
@@ -210,22 +228,22 @@ class EdgeOMatic: # Main object that runs the show
             #Whinge about unexpected message types
             logger.debug("Ignoring message type %s", key)
 
-    async def get_config(self) -> EdgeOMaticConfig:
-        return await self.request(
+    async def _request_config(self) -> EdgeOMaticConfig:
+        return await self._request(
             "configList",
             {"configList": None},
             EdgeOMaticConfig,
         )
     
-    async def get_info(self) -> EdgeOMaticInfo:
-        return await self.request(
+    async def _request_info(self) -> EdgeOMaticInfo:
+        return await self._request(
             "info",
             {"info": None},
             EdgeOMaticInfo,
         )
     
-    async def get_readings(self) -> EdgeOMaticReadings:
-        return await self.request(
+    async def start_readings(self) -> EdgeOMaticReadings:
+        return await self._request(
             "readings",
             {"streamReadings": None}, # Yes, the trigger message is different to the received schema. I hate it
             EdgeOMaticReadings,
@@ -235,7 +253,7 @@ class EdgeOMatic: # Main object that runs the show
         return self.reading_history
 
     async def restart(self) -> None:
-        await self.send({
+        await self._send({
             "restart": None
         })
 
@@ -252,6 +270,16 @@ class EdgeOMatic: # Main object that runs the show
             logger.info("Request to close received, restarting device...")
             await self.restart()
 
+    async def _reader(self):
+
+        async for message in self.ws:
+            await self._handle_message(message)
+
+    # async def _writer(self):
+    #     while True:
+    #         command = await self.commands.get()
+    #         await self.ws.send(command)
+
     async def run(self):
         while True:
             try:
@@ -260,10 +288,20 @@ class EdgeOMatic: # Main object that runs the show
 
                     logger.info("Connected")
 
-                    async for message in ws:
-                        await self._handle_message(message)
+                    self.state = EdgeOMaticStatus.CONFIGURING
+
+                    self._config = await self._request_config()
+                    self._info = await self._request_info()
+
+                    self.state = EdgeOMaticStatus.READY
+                    
+                    await asyncio.gather(
+                        self._reader(),
+                        # self._writer(),
+                    )
 
             except Exception as e:
                 logger.warning("Connection error: %s", e)
+                self.state = EdgeOMaticStatus.DISCONNECTED
                 logger.warning("Retrying in 5 seconds...")
                 await asyncio.sleep(5)

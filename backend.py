@@ -1,9 +1,8 @@
 from litestar import Litestar, get, post
 from litestar.response import ServerSentEvent
-from pathlib import Path
 from collections import deque
 from typing import Dict, Any
-from eom import EdgeOMatic, EdgeOMaticConfig, EdgeOMaticReadings, EdgeOMaticInfo
+from eom import EdgeOMatic, EdgeOMaticReadings, EdgeOMaticStatus, EdgeOMaticConfig, EdgeOMaticInfo
 import logging
 import asyncio
 import msgspec
@@ -15,7 +14,11 @@ eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
 
 # Define Startup Logic
 async def startup():
+    # Connect and start up
     asyncio.create_task(eom.run())
+    
+    if not eom.state == EdgeOMaticStatus.READY:
+        logging.error("Device not ready.")
 
 # Events API Endpoint
 @get("/api/events")
@@ -41,8 +44,16 @@ async def events() -> ServerSentEvent:
 
 # Static API Endpoints
 @get("/api/config")
-async def get_config() -> EdgeOMaticConfig:
-    return await eom.get_config()
+async def config():
+    return eom.config
+
+@get("/api/info")
+async def info():
+    return eom.info
+
+@post("/api/start_streaming")
+async def start_stream():
+    await eom.start_readings
 
 # @post("/config")
 # async def set_config(
@@ -79,11 +90,6 @@ async def get_readings_history() -> deque:
 #     """Set the EdgeOMatic motor speed."""
 #     result = eom.set_motor_speed(speed)
 #     return {"status": "success", "result": result}
-
-@get("/api/info")
-async def get_info() -> EdgeOMaticInfo:
-    """Get information about the EdgeOMatic device."""
-    return await eom.get_info()
 
 @post("/api/restart")
 async def restart_device() -> Dict[str, Any]:
