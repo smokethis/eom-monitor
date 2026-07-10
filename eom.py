@@ -5,8 +5,8 @@ from enum import Enum
 import logging
 import asyncio
 from collections import deque
-from typing import Literal
 from enum import Enum
+import socket
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
