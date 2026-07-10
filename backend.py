@@ -12,13 +12,13 @@ json_encoder = msgspec.json.Encoder()
 logging.basicConfig(level=logging.INFO)
 eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
 
+class TerminalError(Exception):
+    pass
+
 # Define Startup Logic
 async def startup():
     # Connect and start up
-    asyncio.create_task(eom.run())
-    
-    if not eom.state == EdgeOMaticStatus.READY:
-        logging.error("Device not ready.")
+    asyncio.create_task(eom.run()) ### Needs a way to handle connection failures but I can't be arsed right now
 
 # Events API Endpoint.
 @get("/api/events")
