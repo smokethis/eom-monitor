@@ -36,8 +36,8 @@ class DeviceAPI:
     async def restart(self):
         return await api_post("/api/restart")
 
-    async def start_readings(self):
-        return await api_get("/api/readings")
+    async def start_stream(self):
+        return await api_post("/api/start_stream")
     
     async def get_api(self, endpoint):
         return await api_get(f"/api/{endpoint}")

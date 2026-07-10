@@ -18,7 +18,7 @@ class Dashboard:
         with ui.row():
             ui.button(
                 "Start stream",
-                on_click=self.start_events
+                on_click=self.start_stream
             )
             ui.button(
                 "Restart device",
@@ -33,10 +33,10 @@ class Dashboard:
 
         await self.stream.start()
 
-    async def start_events(self):
+    async def start_stream(self):
 
         ui.notify("Starting event stream...")
-        await self.client.start_readings()
+        await self.client.start_stream()
 
     async def restart_device(self):
 
