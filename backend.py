@@ -2,15 +2,18 @@ from litestar import Litestar, get, post
 from litestar.response import ServerSentEvent
 from collections import deque
 from typing import Dict, Any
-from eom import EdgeOMatic, EdgeOMaticReadings, EdgeOMaticStatus, EdgeOMaticConfig, EdgeOMaticInfo
+from eom import EdgeOMatic
 import logging
 import asyncio
 import msgspec
+import os
 
 json_encoder = msgspec.json.Encoder()
+eom_ip = os.environ["EOM_IP"]
+eom_port = int(os.environ["EOM_PORT"])
 
 logging.basicConfig(level=logging.INFO)
-eom: EdgeOMatic = EdgeOMatic("192.168.101.154", 80)
+eom: EdgeOMatic = EdgeOMatic(eom_ip, eom_port)
 
 # Define Startup Logic
 async def startup():
