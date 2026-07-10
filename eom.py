@@ -213,7 +213,7 @@ class EdgeOMatic: # Main object that runs the show
                     future.set_result(result)
                 continue
 
-            # Event path
+            # Readings path
             if key == "readings":
                 reading = msgspec.convert(value, type=EdgeOMaticReadings)
                 self.latest_reading = reading
@@ -221,9 +221,16 @@ class EdgeOMatic: # Main object that runs the show
                 await self.readings_bus.publish(reading)
                 continue
 
+            # wifiStatus path
             if key == "wifiStatus":
                 self._wifi_status = msgspec.convert(value, type=EdgeOMaticWifiStatus)
                 continue
+
+            # Config path
+            if key == "configList":
+                self._config = msgspec.convert(value, type=EdgeOMaticConfig)
+            
+            # SDcard path not implemented yet
             
             #Whinge about unexpected message types
             logger.debug("Ignoring message type %s", key)

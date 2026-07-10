@@ -1,5 +1,6 @@
 from litestar import Litestar, get, post
 from litestar.response import ServerSentEvent
+from litestar.exceptions import HTTPException
 from collections import deque
 from typing import Dict, Any
 from eom import EdgeOMatic
@@ -20,7 +21,7 @@ async def startup():
     # Connect and start up
     asyncio.create_task(eom.run()) ### Needs a way to handle connection failures but I can't be arsed right now
 
-# Events API Endpoint.
+# Readings API Endpoint.
 @get("/api/readings")
 async def events() -> ServerSentEvent:
 
@@ -65,10 +66,20 @@ async def start_stream() -> None:
 
 @get("/api/reading")
 async def get_reading() -> Any:
+    if not eom.state == "STREAMING":
+        raise HTTPException(
+            status_code=409,
+            detail="Streaming has not been started. Call POST /api/start_stream first."
+        )
     return await eom.get_reading()
 
 @get("/api/reading/history")
 async def get_reading_history() -> deque:
+    if not eom.state == "STREAMING":
+        raise HTTPException(
+            status_code=409,
+            detail="Streaming has not been started. Call POST /api/start_stream first."
+        )
     return await eom.get_reading_history()
 
 # @post("/mode/{mode:str}")
