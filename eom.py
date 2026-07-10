@@ -247,7 +247,10 @@ class EdgeOMatic: # Main object that runs the show
             {"streamReadings": None} # Yes, the trigger message is different to the received schema. I hate it
         )
     
-    async def get_readings_history(self):
+    async def get_reading(self):
+        return self.latest_reading
+
+    async def get_reading_history(self):
         return self.reading_history
 
     async def restart(self) -> None:

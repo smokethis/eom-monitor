@@ -63,13 +63,13 @@ async def start_stream() -> None:
 #     eom.set_config(data)
 #     return {"status": "success"}
 
-@get("/api/readings")
-async def get_readings() -> EdgeOMaticReadings:
-    return await eom.get_readings()
+@get("/api/reading")
+async def get_reading() -> Any:
+    return await eom.get_reading()
 
-@get("/api/readings/history")
-async def get_readings_history() -> deque:
-    return await eom.get_readings_history()
+@get("/api/reading/history")
+async def get_reading_history() -> deque:
+    return await eom.get_reading_history()
 
 # @post("/mode/{mode:str}")
 # async def set_mode(
@@ -104,8 +104,8 @@ async def shutdown() -> None:
 app = Litestar(
     route_handlers=[
         config, 
-        get_readings,
-        get_readings_history,
+        get_reading,
+        get_reading_history,
         restart_device,
         start_stream,
         info,
