@@ -6,7 +6,9 @@ from .orgasm_detection import OrgasmDetection
 from .readings import Readings
 from .state import State
 from collections import deque
+from dataclasses import dataclass
 
+@dataclass
 class Device():
     def __init__(self):
         self.configuration = Configuration()

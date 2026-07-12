@@ -4,6 +4,7 @@ from .api import routes
 from .eom.client import Client
 from .device.device import Device
 from .services.device_service import DeviceService
+from .services.device_bus import DeviceEventBus
 import logging
 import asyncio
 import os
@@ -18,7 +19,8 @@ eom_port = int(os.environ["EOM_PORT"])
 
 client = Client(ip=eom_ip, port=eom_port)
 device = Device()
-service = DeviceService(client, device)
+event_bus = DeviceEventBus()
+service = DeviceService(client, device, event_bus)
 
 @asynccontextmanager
 async def lifespan(app: Litestar):
