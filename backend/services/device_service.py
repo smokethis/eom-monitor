@@ -6,6 +6,7 @@ from ..device.device import Device, DeviceRaw
 import logging
 from enum import Enum
 import msgspec
+from dataclasses import fields
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -80,22 +81,54 @@ class DeviceService():
     def _process_message(self, message):
         match message:
             case ConfigMessage():
+                old = self.get_device
                 self._apply_config(message)
+                new = self.get_device
+                changes = self.diff_device(old, new)
+                self.publish_to_bus(changes)
             case InfoMessage():
+                old = self.get_device
                 self._apply_info(message)
+                new = self.get_device
+                changes = self.diff_device(old, new)
+                self.publish_to_bus(changes)
             case ReadingsMessage():
+                old = self.get_device
                 self._apply_readings(message)
+                new = self.get_device
+                changes = self.diff_device(old, new)
+                self.publish_to_bus(changes)
             case WifiStatusMessage():
+                old = self.get_device
                 self._apply_wifistatus(message)
+                new = self.get_device
+                changes = self.diff_device(old, new)
+                self.publish_to_bus(changes)
             case _:
                 logger.warning("Unknown message recevied: %t", type(message))
     
-    def publish_to_bus(self, message):
-        json = msgspec.json.encode(message)
+    def publish_to_bus(self, changes):
+        # json = msgspec.json.encode(message)
+        json = msgspec.json.encode(changes)
         self.event_bus.publish(json)
     
-    async def get_device_state(self) -> Device:
+    async def get_device(self) -> Device:
         return self.device
+
+    def diff_device(self, old, new):
+        changes = {}
+
+        for field in fields(new):
+            old_value = getattr(old, field.name)
+            new_value = getattr(new, field.name)
+
+            if old_value != new_value:
+                changes[field.name] = {
+                    "old": old_value,
+                    "new": new_value,
+                }
+
+        return changes
 
     async def _listen(self):
         while True:

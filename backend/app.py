@@ -65,7 +65,7 @@ app = Litestar(
     ],
     lifespan=[lifespan],
     dependencies={
-        "service": Provide(lambda: service),
-        "event_bus": Provide(lambda: service.event_bus)
+        "service": Provide(lambda: service, sync_to_thread=False),
+        "event_bus": Provide(lambda: service.event_bus, sync_to_thread=False)
     }
 )
