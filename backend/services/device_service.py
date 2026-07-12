@@ -1,9 +1,11 @@
 import asyncio
 from ..eom.client import Client, ClientState
+from ..services.device_bus import DeviceEventBus
 from ..eom.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
 from ..device.device import Device
 import logging
 from enum import Enum
+import msgspec
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -13,10 +15,11 @@ class DeviceState(Enum):
     STREAMING = "STREAMING"
 
 class DeviceService():
-    def __init__(self, client: Client, device: Device):
+    def __init__(self, client: Client, device: Device, event_bus: DeviceEventBus):
         self.client = client
         self.device = device
         self.state = DeviceState.STANDBY
+        self.event_bus = event_bus
 
     async def restart(self) -> bool:
         await self.client.send_restart_command()
@@ -53,17 +56,20 @@ class DeviceService():
         await self.client.send_start_readings_command()
         self.state = DeviceState.STREAMING
 
-    def _apply_config(self, message):
+    def _apply_config(self, message: ConfigMessage):
         self.device.update_from_config(message)
         self.device.config = message
+        self.publish_to_bus(message)
     
-    def _apply_info(self, message):
+    def _apply_info(self, message: InfoMessage):
         self.device.update_from_info(message)
         self.device.info = message
+        self.publish_to_bus(message)
     
-    def _apply_readings(self, message):
+    def _apply_readings(self, message: ReadingsMessage):
         self.device.update_from_readings(message)
         self.device.raw_readings = message
+        self.publish_to_bus(message)
 
     def _apply_wifistatus(self, message):
         # self.device.update_from_wifistatus(message)
@@ -82,6 +88,13 @@ class DeviceService():
             case _:
                 logger.warning("Unknown message recevied: %t", type(message))
     
+    def publish_to_bus(self, message):
+        json = msgspec.json.encode(message)
+        self.event_bus.publish(json)
+    
+    async def get_device_state(self) -> Device:
+        return self.device
+
     async def _listen(self):
         while True:
             message = await self.client.events.get()

@@ -1,10 +1,10 @@
 from nicegui import ui
-from ...device.models import Device
+from api.client import LitestarApiClient
 
 class InfoCard:
 
-    def __init__(self, device: Device):
-        self.device = device
+    def __init__(self, client: LitestarApiClient):
+        self.client = client
         self.card = None
 
     def render(self):

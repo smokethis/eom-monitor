@@ -1,50 +1,59 @@
 import httpx
-from .models import Info, Config
+from backend.eom.models import ConfigMessage, InfoMessage
 
 LITESTAR_BASE = "http://localhost:8000/"
 
-# Generic API GET function
-async def api_get(path):
-    async with httpx.AsyncClient() as client:
-        response = await client.get(f"{LITESTAR_BASE}{path}")
+# # Generic API GET function
+# async def api_get(path):
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(f"{LITESTAR_BASE}{path}")
 
-        if response.is_error:
-            return {
-                "status": response.status_code,
-                "error": response.text
-            }
+#         if response.is_error:
+#             return {
+#                 "status": response.status_code,
+#                 "error": response.text
+#             }
 
-        return response.json()
+#         return response.json()
 
-# Generic API POST function
-async def api_post(path):
-    async with httpx.AsyncClient() as client:
-        response = await client.post(f"{LITESTAR_BASE}{path}")
+# # Generic API POST function
+# async def api_post(self, path):
+#     response = await self.post(path)
 
-        if response.is_error:
-            return {
-                "status": response.status_code,
-                "error": response.text
-            }
+#     if response.is_error:
+#         return {
+#             "status": response.status_code,
+#             "error": response.text
+#         }
 
-class Client:
+class LitestarApiClient:
     def __init__(self):
         self.base_uri = LITESTAR_BASE
+        self.http = httpx.AsyncClient(base_url=LITESTAR_BASE)
 
-    async def get_config(self) -> Config:
-        data = await api_get("/api/config")
-        return Config(**data)
+    async def get_info(self):
+        response = await self.http.get("/api/info")
+        return InfoMessage(**response.json())
+    
+    async def get_config(self):
+        response = await self.http.get("/api/config")
+        return ConfigMessage(**response.json())
 
-    async def get_info(self) -> Info:
-        data = await api_get("/api/config")
-        return Info(**data)
+
+    # async def get_config(self) -> ConfigMessage:
+    #     data = await api_get("/api/raw/config")
+    #     return ConfigMessage(**data)
+
+    # async def get_info(self) -> InfoMessage:
+    #     data = await api_get("/api/raw/config")
+    #     return InfoMessage(**data)
 
     async def restart(self) -> None:
-        await api_post("/api/restart")
+        await self.http.post("/api/restart")
 
     async def start_stream(self) -> None:
-        await api_post("/api/start_stream")
+        await self.http.post("/api/start_stream")
     
     # Generic endpoint getter, only really useful for debugging
     async def get_api(self, endpoint):
-        return await api_get(f"/api/{endpoint}")
+        return await self.http.get(f"/api/raw{endpoint}")

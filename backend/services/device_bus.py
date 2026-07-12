@@ -1,8 +1,8 @@
 import asyncio
 from typing import Any
 
-class ApplicationBus:
-    def __init__(self, queue_size: int = 10):
+class DeviceEventBus:
+    def __init__(self, queue_size: int = 1000):
         self._queue_size = queue_size
         self._subscribers: set[asyncio.Queue] = set()
 
@@ -14,7 +14,7 @@ class ApplicationBus:
     def unsubscribe(self, queue: asyncio.Queue):
         self._subscribers.discard(queue)
 
-    async def publish(self, event: Any):
+    def publish(self, event: Any):
         for queue in list(self._subscribers):
             if queue.full():
                 try:
@@ -22,4 +22,4 @@ class ApplicationBus:
                 except asyncio.QueueEmpty:
                     pass
 
-            await queue.put(event)
+            queue.put_nowait(event)

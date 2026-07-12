@@ -1,10 +1,11 @@
 import json
 from nicegui import ui
+from api.client import LitestarApiClient
 from frontend.ui.widgets.info_card import InfoCard
 
 class Dashboard:
-    def __init__(self, device):
-        self.device = device
+    def __init__(self, client: LitestarApiClient):
+        self.client = client
         self.alive = True
 
     async def render(self):
@@ -14,15 +15,15 @@ class Dashboard:
         with ui.row():
             ui.button(
                 "Start stream",
-                # on_click=self.start_stream
+                on_click=await self.client.start_stream()
             )
             ui.button(
                 "Restart device",
-                # on_click=self.restart_device
+                on_click=await self.client.restart()
             )
 
         with ui.row():
-            InfoCard(self.device).render()
+            InfoCard(self.client).render()
             # self.latest_event = ui.code("Waiting for events...",language="json")
 
         # self.stream.subscribe(self.handle_event)

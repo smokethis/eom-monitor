@@ -1,12 +1,12 @@
-from litestar import get, post, websocket
-from litestar.response import ServerSentEvent
+from litestar import get, post, WebSocket
 from litestar.exceptions import HTTPException
 from ..eom.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
 from ..device.device import Device
+from ..services.device_bus import DeviceEventBus
 from collections import deque
-from typing import Any
 import msgspec
 from ..services.device_service import DeviceService
+import asyncio
 
 json_encoder = msgspec.json.Encoder()
 
@@ -112,3 +112,22 @@ async def get_service(service: DeviceService) -> DeviceService:
 @post("/api/restart")
 async def restart_device(service: DeviceService) -> None:
     await service.restart()
+
+@get("/ws/devices")
+async def device_socket(socket: WebSocket, bus: DeviceEventBus):
+    await socket.accept()
+
+    queue = bus.subscribe()
+
+    try:
+        while True:
+            device = await queue.get()
+
+            await socket.send_json({
+                "id": device.id,
+                "temperature": device.temperature,
+                "status": device.status,
+            })
+
+    finally:
+        bus.unsubscribe(queue)
