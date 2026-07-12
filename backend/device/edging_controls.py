@@ -1,15 +1,16 @@
 from .motor import Motor
+from dataclasses import dataclass, field
 
+@dataclass
 class EdgingControls():
-    def __init__(self):
-        self.cooldown_delay = 0 # Milliseconds
-        self.cooldown_randomised_additional_delay = 0 # Milliseconds
-        self.arousal_detection_holdoff = 0 # Milliseconds
-        self.pressure_smoothing = 0 # Unknown
-        self.arousal_threshold = 0 # 0-256 ?
-        self.sensor_sensitivity = 0 # 0-4096 ?
-        self.use_average_values = False
-        self.update_frequency = 50 # Hz
-        self.arousal_decay_rate = 0 # ?
-        self.run_mode = ""
-        self.motor_settings = Motor()
+    cooldown_delay: int = 0 # Milliseconds
+    cooldown_randomised_additional_delay: int = 0 # Milliseconds
+    arousal_detection_holdoff: int = 0 # Milliseconds
+    pressure_smoothing: int = 0 # Unknown
+    arousal_threshold: int = 0 # 0-256 ?
+    sensor_sensitivity: int = 0 # 0-4096 ?
+    use_average_values: bool = False
+    update_frequency: int = 50 # Hz
+    arousal_decay_rate: int = 0 # ?
+    run_mode:str = ""
+    motor_settings:Motor = field(default_factory=Motor)

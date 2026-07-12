@@ -1,6 +1,8 @@
+from dataclasses import dataclass
+
+@dataclass
 class Wifi():
-    def __init__(self):
-        self.ssid = ""
-        self.password = ""
-        self.enabled = True
-        self.hostname = ""
+    ssid: str = ""
+    password: str = ""
+    enabled: bool = True
+    hostname: str = ""

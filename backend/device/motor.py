@@ -1,8 +1,9 @@
-from ..eom.models import VibrationMode
+from dataclasses import dataclass
+from ..models.modes import VibrationMode
 
+@dataclass
 class Motor():
-    def __init__(self):
-        self.min_speed = 0
-        self.max_speed = 0
-        self.ramp_time = 0 # Seconds
-        self.vibration_mode: VibrationMode
+    min_speed: int = 0
+    max_speed: int = 0
+    ramp_time: int = 0 # Seconds
+    vibration_mode: VibrationMode = VibrationMode.RampStop

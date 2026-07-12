@@ -4,16 +4,18 @@ from .display import Display
 from .webserver import Webserver
 from .serial import Serial
 from .console import Console
+from dataclasses import dataclass, field
 
+@dataclass
 class Configuration():
-    def __init__(self):
-        self.wifi = Wifi()
-        self.bluetooth = Bluetooth()
-        self.display = Display()
-        self.webserver = Webserver()
-        self.serial = Serial()
-        self.console = Console()
-        self.filename = ""
-        self.language_file_name = ""
-        self.remote_update_url = ""
-        self.version = 0
+    filename: str = ""
+    language_file_name: str = ""
+    remote_update_url: str = ""
+    version: int = 0
+    wifi: Wifi = field(default_factory=Wifi)
+    bluetooth: Bluetooth = field(default_factory=Bluetooth)
+    display: Display = field(default_factory=Display)
+    webserver: Webserver = field(default_factory=Webserver)
+    serial: Serial = field(default_factory=Serial)
+    console: Console = field(default_factory=Console)
+

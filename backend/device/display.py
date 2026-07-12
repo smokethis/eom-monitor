@@ -1,8 +1,10 @@
+from dataclasses import dataclass
+
+@dataclass
 class Display():
-    def __init__(self):
-        self.brightness = 0
-        self.dim_delay = 0 # Seconds
-        self.timeout_delay = 0 # Seconds
-        self.screensaver = False
-        self.reverse_scroll = False
-        self.denial_count_mode = 0
+    brightness: int = 0
+    dim_delay: int = 0 # Seconds
+    timeout_delay: int = 0 # Seconds
+    screensaver: bool = False
+    reverse_scroll: bool = False
+    denial_count_mode: int = 0

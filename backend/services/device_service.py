@@ -2,7 +2,7 @@ import asyncio
 from ..eom.client import Client, ClientState
 from ..services.device_bus import DeviceEventBus
 from ..eom.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
-from ..device.device import Device
+from ..device.device import Device, DeviceRaw
 import logging
 from enum import Enum
 import msgspec
@@ -15,9 +15,10 @@ class DeviceState(Enum):
     STREAMING = "STREAMING"
 
 class DeviceService():
-    def __init__(self, client: Client, device: Device, event_bus: DeviceEventBus):
+    def __init__(self, client: Client, device: Device, raw: DeviceRaw, event_bus: DeviceEventBus):
         self.client = client
         self.device = device
+        self.raw = raw
         self.state = DeviceState.STANDBY
         self.event_bus = event_bus
 
@@ -58,17 +59,18 @@ class DeviceService():
 
     def _apply_config(self, message: ConfigMessage):
         self.device.update_from_config(message)
-        self.device.config = message
+        self.raw.configuration = message
         self.publish_to_bus(message)
     
     def _apply_info(self, message: InfoMessage):
         self.device.update_from_info(message)
-        self.device.info = message
+        self.raw.info = message
         self.publish_to_bus(message)
     
     def _apply_readings(self, message: ReadingsMessage):
         self.device.update_from_readings(message)
-        self.device.raw_readings = message
+        self.raw.readings = message
+        self.raw.readings_history.append(message)
         self.publish_to_bus(message)
 
     def _apply_wifistatus(self, message):

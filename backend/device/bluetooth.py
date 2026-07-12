@@ -1,5 +1,7 @@
+from dataclasses import dataclass
+
+@dataclass
 class Bluetooth():
-    def __init__(self):
-        self.name = ""
-        self.force_coexistence = False
-        self.enabled = False
+    name: str = ""
+    force_coexistence: bool = False
+    enabled: bool = False

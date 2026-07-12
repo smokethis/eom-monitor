@@ -1,6 +1,8 @@
+from dataclasses import dataclass
+
+@dataclass
 class Webserver():
-    def __init__(self):
-        self.port = 0
-        self.ssl = False
-        self.hostname = ""
-        self.mdns = False
+    port: int = 0
+    ssl: bool = False
+    hostname: str = ""
+    mdns: bool = False

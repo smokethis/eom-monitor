@@ -5,26 +5,39 @@ from .console import Console
 from .orgasm_detection import OrgasmDetection
 from .readings import Readings
 from .state import State
+from dataclasses import dataclass, field
 from collections import deque
-from dataclasses import dataclass
+
+class DeviceRaw():
+    def __init__(self):
+        self.configuration: ConfigMessage
+        self.info: InfoMessage
+        self.readings: ReadingsMessage
+        self.readings_history = deque(maxlen=1000) # Should be enough for about the last 20 seconds at 50Hz
 
 @dataclass
 class Device():
-    def __init__(self):
-        self.configuration = Configuration()
-        self.edging_controls = EdgingControls()
-        self.console = Console()
-        self.name = ""
-        self.serial = ""
-        self.hw_version = ""
-        self.fw_version = ""
-        self.orgasm_detection = OrgasmDetection() # These are horrible and I hate them but I can't be arsed to fix them right now.
-        self.readings = Readings()
-        self.raw_readings: ReadingsMessage | None = None
-        self.raw_readings_history = deque(maxlen=1000) # Should be enough for about the last 20 seconds at 50Hz
-        self.state = State()
-        self.config: ConfigMessage | None = None
-        self.info: InfoMessage | None = None
+    name: str = ""
+    serial: str = ""
+    hw_version: str = ""
+    fw_version: str = ""
+    configuration: Configuration = field(default_factory=Configuration)
+    edging_controls: EdgingControls = field(default_factory=EdgingControls)
+    console: Console = field(default_factory=Console)
+    orgasm_detection: OrgasmDetection = field(default_factory=OrgasmDetection)
+    state: State = field(default_factory=State)
+    readings: Readings = field(default_factory=Readings)
+
+    # def __init__(self):
+    #     self.configuration = Configuration()
+    #     self.edging_controls = EdgingControls()
+    #     self.console = Console()
+    #     self.name = ""
+    #     self.serial = ""
+    #     self.hw_version = ""
+    #     self.fw_version = ""
+    #     self.orgasm_detection = OrgasmDetection() # These are horrible and I hate them but I can't be arsed to fix them right now.
+    #     self.state = State()
 
     def update_from_config(self, config: ConfigMessage):
         self.edging_controls.arousal_decay_rate = config.arousal_decay_rate

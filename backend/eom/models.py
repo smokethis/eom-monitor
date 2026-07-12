@@ -1,17 +1,5 @@
-from enum import Enum
 from msgspec import Struct, field
-
-class ControlMode(Enum):
-    Manual = "MANUAL_CONTROL"
-    Automatic = "AUTOMAITC_CONTROL"
-    Orgasm = "ORGASM_MODE"
-    Unk = ""
-
-class VibrationMode(Enum):
-    GlobalSync = 0
-    RampStop = 1
-    Depletion = 2
-    Enhancement = 3
+from ..models.modes import VibrationMode, ControlMode
 
 class ConfigMessage(Struct):
     wifi_ssid: str

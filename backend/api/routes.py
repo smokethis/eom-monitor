@@ -35,21 +35,21 @@ json_encoder = msgspec.json.Encoder()
 # Static API Endpoints
 @get("/api/raw/config")
 async def get_config(service: DeviceService) -> ConfigMessage:
-    if service.device.config is None:
+    if service.raw.configuration is None:
         raise HTTPException(
             status_code=503,
             detail="Device configuration is not available yet",
         )
-    return service.device.config
+    return service.raw.configuration
 
 @get("/api/raw/info")
 async def get_info(service: DeviceService) -> InfoMessage:
-    if service.device.info is None:
+    if service.raw.info is None:
         raise HTTPException(
             status_code=503,
             detail="Device info is not available yet",
         )
-    return service.device.info
+    return service.raw.info
 
 @post("/api/raw/start_stream")
 async def start_stream(service: DeviceService) -> None:
@@ -70,7 +70,7 @@ async def get_readings(service: DeviceService) -> ReadingsMessage:
             status_code=409,
             detail="Streaming has not been started. Call POST /api/start_stream first."
         )
-    return service.device.raw_readings
+    return service.raw.readings
 
 @get("/api/raw/readings/history")
 async def get_readings_history(service: DeviceService) -> deque:
@@ -79,7 +79,7 @@ async def get_readings_history(service: DeviceService) -> deque:
             status_code=409,
             detail="Streaming has not been started. Call POST /api/start_stream first."
         )
-    return service.device.raw_readings_history
+    return service.raw.readings_history
 
 @get("/api/device")
 async def get_device(service: DeviceService) -> Device:
@@ -115,19 +115,17 @@ async def restart_device(service: DeviceService) -> None:
 
 @get("/ws/devices")
 async def device_socket(socket: WebSocket, bus: DeviceEventBus):
-    await socket.accept()
+    await socket.accept() # This seems wrong?
 
     queue = bus.subscribe()
 
     try:
         while True:
-            device = await queue.get()
-
-            await socket.send_json({
-                "id": device.id,
-                "temperature": device.temperature,
-                "status": device.status,
-            })
+            event = await queue.get()
+            yield {
+                    "event": "message",
+                    "data": json_encoder.encode(event).decode()
+                    }
 
     finally:
         bus.unsubscribe(queue)

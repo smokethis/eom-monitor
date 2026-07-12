@@ -1,17 +1,19 @@
+from dataclasses import dataclass
+
+@dataclass
 class OrgasmDetection():
-    def __init__(self):
-        self.mode = 0
-        self.sustained_threshold = 0
-        self.sustained_fallback = 0 # Milliseconds
-        self.sustained_dropout = 0 # Milliseconds
-        self.peak_min_amplitude = 0
-        self.rhythmic_min_peaks = 0
-        self.rhythmic_interval_min = 0 # Milliseconds
-        self.rhythmic_interval_max = 0 # Milliseconds
-        self.rhythmic_interval_variance = 0 # Milliseconds
-        self.rhythmic_timeout = 0 # Milliseconds
-        self.arousal_gate_percent = 0
-        self.recovery = 0 # Milliseconds
-        self.clench_arousal_boost = False
-        self.clench_arousal_boost_amount = 0
-        self.detection_armed = False
+    mode:int = 0
+    sustained_threshold:int = 0
+    sustained_fallback:int = 0 # Milliseconds
+    sustained_dropout:int = 0 # Milliseconds
+    peak_min_amplitude:int = 0
+    rhythmic_min_peaks:int = 0
+    rhythmic_interval_min:int = 0 # Milliseconds
+    rhythmic_interval_max:int = 0 # Milliseconds
+    rhythmic_interval_variance:int = 0 # Milliseconds
+    rhythmic_timeout:int = 0 # Milliseconds
+    arousal_gate_percent:int = 0
+    recovery:int = 0 # Milliseconds
+    clench_arousal_boost:bool = False
+    clench_arousal_boost_amount:int= 0
+    detection_armed:bool= False

@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
+@dataclass
 class Serial():
-    def __init__(self):
-        self.use_classic = False
+    use_classic: bool = False

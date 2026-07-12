@@ -2,7 +2,7 @@ from litestar import Litestar
 from litestar.di import Provide
 from .api import routes
 from .eom.client import Client
-from .device.device import Device
+from .device.device import Device, DeviceRaw
 from .services.device_service import DeviceService
 from .services.device_bus import DeviceEventBus
 import logging
@@ -20,7 +20,8 @@ eom_port = int(os.environ["EOM_PORT"])
 client = Client(ip=eom_ip, port=eom_port)
 device = Device()
 event_bus = DeviceEventBus()
-service = DeviceService(client, device, event_bus)
+raw = DeviceRaw()
+service = DeviceService(client, device, raw, event_bus)
 
 @asynccontextmanager
 async def lifespan(app: Litestar):
@@ -49,21 +50,6 @@ async def lifespan(app: Litestar):
         return_exceptions=True,
     )
 
-# async def startup():
-#     # Connect and start up
-#     logging.debug("*** LITESTAR - DEBUG START CONFIRMED ***")
-
-#     tasks = [
-#         asyncio.create_task(client.run()),
-#         asyncio.create_task(service.run()),
-#     ]
-
-#     await asyncio.gather(*tasks)
-
-# # Close the connection on shutdown
-# async def shutdown() -> None:
-#     await service.close()
-
 # Litestar app configuration
 app = Litestar(
     route_handlers=[
@@ -82,6 +68,4 @@ app = Litestar(
         "service": Provide(lambda: service),
         "event_bus": Provide(lambda: service.event_bus)
     }
-    # on_shutdown=[shutdown],
-    # on_startup=[startup]
 )

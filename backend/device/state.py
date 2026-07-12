@@ -1,7 +1,8 @@
-from ..eom.models import ControlMode
+from dataclasses import dataclass
+from ..models.modes import ControlMode
 
+@dataclass
 class State():
-    def __init__(self):
-        self.run_mode: ControlMode
-        self.motor_speed = 0 # 0-4096?
-        self.time_since_power_on = 0 # Milliseconds
+    run_mode:ControlMode = ControlMode.Manual
+    motor_speed:int = 0 # 0-4096?
+    time_since_power_on:int = 0 # Milliseconds
