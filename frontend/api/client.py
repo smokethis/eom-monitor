@@ -1,5 +1,5 @@
 import httpx
-import models
+from .models import Info, Config
 
 LITESTAR_BASE = "http://localhost:8000/"
 
@@ -27,18 +27,24 @@ async def api_post(path):
                 "error": response.text
             }
 
-class DeviceAPI:
+class Client:
     def __init__(self):
         self.base_uri = LITESTAR_BASE
 
-    async def get_config(self):
-        return await api_get("/api/config")
+    async def get_config(self) -> Config:
+        data = await api_get("/api/config")
+        return Config(**data)
 
-    async def restart(self):
-        return await api_post("/api/restart")
+    async def get_info(self) -> Info:
+        data = await api_get("/api/config")
+        return Info(**data)
 
-    async def start_stream(self):
-        return await api_post("/api/start_stream")
+    async def restart(self) -> None:
+        await api_post("/api/restart")
+
+    async def start_stream(self) -> None:
+        await api_post("/api/start_stream")
     
+    # Generic endpoint getter, only really useful for debugging
     async def get_api(self, endpoint):
         return await api_get(f"/api/{endpoint}")

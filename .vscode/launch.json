@@ -4,12 +4,31 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "Python Debugger: Current File",
+            "name": "Turbo Litestar Debugging",
             "type": "debugpy",
             "request": "launch",
-            "program": "${file}",
+            "module": "litestar",
+            "justMyCode": true,
+            "args": [
+                "--app=backend.app:app",
+                "run",
+                "--debug"
+            ],
+            "console": "integratedTerminal"
+        },
+
+        
+        {
+            "name": "Litestar Debugging",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "litestar",
+            "justMyCode": true,
+            "args": [
+                "--app=backend.app:app",
+                "run"
+            ],
             "console": "integratedTerminal"
         }
     ]
