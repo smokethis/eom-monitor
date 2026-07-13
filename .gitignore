@@ -294,4 +294,4 @@ MobileBackups.trash
 tmbootpicker.efi
 
 # .http files
-.http
+*.http
