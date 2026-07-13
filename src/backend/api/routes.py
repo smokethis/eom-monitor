@@ -5,8 +5,7 @@ from ..device.device import Device
 from ..services.device_bus import DeviceEventBus
 from collections import deque
 import msgspec
-from ..services.device_service import DeviceService
-import asyncio
+from ..services.device_service import DeviceService, DeviceState
 
 json_encoder = msgspec.json.Encoder()
 
@@ -38,7 +37,7 @@ async def get_config(service: DeviceService) -> ConfigMessage:
     if service.raw.configuration is None:
         raise HTTPException(
             status_code=503,
-            detail="Device configuration is not available yet",
+            detail="Device configuration has not been received",
         )
     return service.raw.configuration
 
@@ -47,11 +46,19 @@ async def get_info(service: DeviceService) -> InfoMessage:
     if service.raw.info is None:
         raise HTTPException(
             status_code=503,
-            detail="Device info is not available yet",
+            detail="Device info has not been received",
         )
     return service.raw.info
 
-@post("/api/raw/start_stream")
+@post("/api/update/info")
+async def update_info(service: DeviceService) -> None:
+    await service.client.request_info()
+
+@post("/api/update/config")
+async def update_config(service: DeviceService) -> None:
+    await service.client.request_config()
+
+@post("/api/start_stream")
 async def start_stream(service: DeviceService) -> None:
     await service.start_readings()
 
@@ -65,7 +72,7 @@ async def start_stream(service: DeviceService) -> None:
 
 @get("/api/raw/readings")
 async def get_readings(service: DeviceService) -> ReadingsMessage:
-    if not service.state == "STREAMING":
+    if not service.state == DeviceState.STREAMING:
         raise HTTPException(
             status_code=409,
             detail="Streaming has not been started. Call POST /api/start_stream first."
@@ -74,7 +81,7 @@ async def get_readings(service: DeviceService) -> ReadingsMessage:
 
 @get("/api/raw/readings/history")
 async def get_readings_history(service: DeviceService) -> deque:
-    if not service.state == "STREAMING":
+    if not service.state == DeviceState.STREAMING:
         raise HTTPException(
             status_code=409,
             detail="Streaming has not been started. Call POST /api/start_stream first."

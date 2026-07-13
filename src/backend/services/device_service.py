@@ -1,12 +1,13 @@
 import asyncio
 from ..eom.client import Client, ClientState
-from ..services.device_bus import DeviceEventBus
+from .device_bus import DeviceEventBus
 from ..eom.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
 from ..device.device import Device, DeviceRaw
 import logging
 from enum import Enum
 import msgspec
 from dataclasses import fields
+from copy import deepcopy
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -61,47 +62,44 @@ class DeviceService():
     def _apply_config(self, message: ConfigMessage):
         self.device.update_from_config(message)
         self.raw.configuration = message
-        self.publish_to_bus(message)
     
     def _apply_info(self, message: InfoMessage):
         self.device.update_from_info(message)
         self.raw.info = message
-        self.publish_to_bus(message)
     
     def _apply_readings(self, message: ReadingsMessage):
         self.device.update_from_readings(message)
         self.raw.readings = message
         self.raw.readings_history.append(message)
-        self.publish_to_bus(message)
 
-    def _apply_wifistatus(self, message):
+    def _apply_wifistatus(self, message: WifiStatusMessage):
         # self.device.update_from_wifistatus(message)
         pass
 
     def _process_message(self, message):
         match message:
             case ConfigMessage():
-                old = self.get_device
+                old = deepcopy(self.get_device()) # We use deepcopy() to get a copy of Device() as opposed to just a reference to the current object, it needs to be deepcopy() to cater to nested objects
                 self._apply_config(message)
-                new = self.get_device
+                new = self.get_device()
                 changes = self.diff_device(old, new)
                 self.publish_to_bus(changes)
             case InfoMessage():
-                old = self.get_device
+                old = deepcopy(self.get_device())
                 self._apply_info(message)
-                new = self.get_device
+                new = self.get_device()
                 changes = self.diff_device(old, new)
                 self.publish_to_bus(changes)
             case ReadingsMessage():
-                old = self.get_device
+                old = deepcopy(self.get_device())
                 self._apply_readings(message)
-                new = self.get_device
+                new = self.get_device()
                 changes = self.diff_device(old, new)
                 self.publish_to_bus(changes)
             case WifiStatusMessage():
-                old = self.get_device
+                old = deepcopy(self.get_device())
                 self._apply_wifistatus(message)
-                new = self.get_device
+                new = self.get_device()
                 changes = self.diff_device(old, new)
                 self.publish_to_bus(changes)
             case _:
@@ -112,7 +110,7 @@ class DeviceService():
         json = msgspec.json.encode(changes)
         self.event_bus.publish(json)
     
-    async def get_device(self) -> Device:
+    def get_device(self) -> Device:
         return self.device
 
     def diff_device(self, old, new):
@@ -123,17 +121,17 @@ class DeviceService():
             new_value = getattr(new, field.name)
 
             if old_value != new_value:
-                changes[field.name] = {
-                    "old": old_value,
-                    "new": new_value,
-                }
+                changes[field.name] = new_value
 
         return changes
 
     async def _listen(self):
         while True:
+            logger.debug("Listening for messages on internal queue...")
             message = await self.client.events.get()
+            logger.debug(f"Got message: {message!r}")
             self._process_message(message)
+            logger.debug("Processed message")
 
     async def run(self):
         while True:

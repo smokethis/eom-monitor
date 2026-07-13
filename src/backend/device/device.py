@@ -10,8 +10,8 @@ from collections import deque
 
 class DeviceRaw():
     def __init__(self):
-        self.configuration: ConfigMessage
-        self.info: InfoMessage
+        self.configuration: ConfigMessage | None = None
+        self.info: InfoMessage | None = None
         self.readings: ReadingsMessage
         self.readings_history = deque(maxlen=1000) # Should be enough for about the last 20 seconds at 50Hz
 

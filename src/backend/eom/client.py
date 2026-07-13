@@ -5,7 +5,7 @@ import logging
 import asyncio
 import msgspec
 from enum import Enum
-from ..eom import models
+from . import models
 
 class ClientState(Enum):
     DISCONNECTED = "DISCONNECTED"
@@ -13,6 +13,8 @@ class ClientState(Enum):
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
+# Debug mode on
+logging.basicConfig(level=logging.DEBUG)
 
 class Client():
     
@@ -20,7 +22,7 @@ class Client():
         self.uri = f"ws://{ip}:{port}/"
         self.ip = ip
         self.port = port
-        self.events = asyncio.Queue(maxsize=1000)
+        self.events = asyncio.Queue() # Need to re-add maxsize, wasn't that.
 
     def port_probe(self):
         try:
@@ -124,7 +126,7 @@ class Client():
                 return config
             
             # Info path
-            if key == 'info':
+            if key == "info":
                 info = msgspec.convert(value, type=models.InfoMessage)
                 return info
                         
@@ -140,7 +142,9 @@ class Client():
 
     async def _handle_message(self, raw):
         message = self.decode_message(raw)
-        if message: await self.events.put(message)
+        logger.debug("Decoded message: %s", type(message))
+        if message: 
+            await self.events.put(message)
 
     async def _reader(self):
         async for message in self.ws:
@@ -153,6 +157,7 @@ class Client():
                 async with connect(self.uri, ping_interval=None) as ws: # Disabled ping as the device is a nonsense
                     self.ws = ws
                     self.state = ClientState.CONNECTED
+                    logger.info("Connected to device")
 
                     reader_task = asyncio.create_task(self._reader())
 

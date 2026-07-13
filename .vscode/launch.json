@@ -11,7 +11,7 @@
             "module": "litestar",
             "justMyCode": true,
             "args": [
-                "--app=backend.app:app",
+                "--app=src.backend.main:app",
                 "run",
                 "--debug"
             ],
@@ -26,7 +26,7 @@
             "module": "litestar",
             "justMyCode": true,
             "args": [
-                "--app=backend.app:app",
+                "--app=src.backend.main:app",
                 "run"
             ],
             "console": "integratedTerminal"
