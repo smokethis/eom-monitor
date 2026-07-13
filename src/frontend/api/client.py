@@ -27,35 +27,3 @@ class LitestarApiClient:
     # Generic endpoint getter, only really useful for debugging
     async def get_api(self, endpoint):
         return await self.http.get(f"/api{endpoint}")
-
-
-# # Generic API GET function
-# async def api_get(path):
-#     async with httpx.AsyncClient() as client:
-#         response = await client.get(f"{LITESTAR_BASE}{path}")
-
-#         if response.is_error:
-#             return {
-#                 "status": response.status_code,
-#                 "error": response.text
-#             }
-
-#         return response.json()
-
-# # Generic API POST function
-# async def api_post(self, path):
-#     response = await self.post(path)
-
-#     if response.is_error:
-#         return {
-#             "status": response.status_code,
-#             "error": response.text
-#         }
-
-    # async def get_config(self) -> ConfigMessage:
-    #     data = await api_get("/api/raw/config")
-    #     return ConfigMessage(**data)
-
-    # async def get_info(self) -> InfoMessage:
-    #     data = await api_get("/api/raw/config")
-    #     return InfoMessage(**data)

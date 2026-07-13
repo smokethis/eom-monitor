@@ -5,14 +5,14 @@ class DeviceService:
     def __init__(self, client: LitestarApiClient):
         self.device = Device()
         self.client = client
-    
-    async def start(self):
-        await self.initialise()
 
         # self.task = asyncio.create_task(
         #     self.listen()
         # )
     
+    async def start(self):
+        await self.initialise()
+
     async def initialise(self):
         info = await self.client.get_info()
         self.device.update_from_info(info)
