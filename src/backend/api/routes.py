@@ -120,7 +120,7 @@ async def get_service(service: DeviceService) -> DeviceService:
 async def restart_device(service: DeviceService) -> None:
     await service.restart()
 
-@get("/ws/devices")
+@get("/api/stream")
 async def device_socket(socket: WebSocket, bus: DeviceEventBus):
     await socket.accept()
 

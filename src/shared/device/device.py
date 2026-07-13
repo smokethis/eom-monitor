@@ -7,6 +7,8 @@ from .readings import Readings
 from .state import State
 from dataclasses import dataclass, field
 from collections import deque
+from collections import defaultdict
+from typing import Callable
 
 class DeviceRaw():
     def __init__(self):
@@ -15,8 +17,30 @@ class DeviceRaw():
         self.readings: ReadingsMessage
         self.readings_history = deque(maxlen=1000) # Should be enough for about the last 20 seconds at 50Hz
 
-@dataclass
-class Device():
+@dataclass(slots=True)
+class Observable:
+    _listeners: dict[str, list[Callable]] = field(
+        default_factory=dict,
+        init=False,
+        repr=False
+    )
+
+    def subscribe(self, name: str, callback: Callable):
+        self._listeners.setdefault(name, []).append(callback)
+
+    def _notify(self, property_name: str, value):
+        for callback in self._listeners[property_name]:
+            callback(value)
+
+    def __setattr__(self, name, value):
+        object.__setattr__(self, name, value)
+
+        listeners = getattr(self, "_listeners", None)
+        if listeners and name in listeners:
+            self._notify(name, value)
+
+@dataclass(slots=True)
+class Device(Observable):
     name: str = ""
     serial: str = ""
     hw_version: str = ""
@@ -27,17 +51,6 @@ class Device():
     orgasm_detection: OrgasmDetection = field(default_factory=OrgasmDetection)
     state: State = field(default_factory=State)
     readings: Readings = field(default_factory=Readings)
-
-    # def __init__(self):
-    #     self.configuration = Configuration()
-    #     self.edging_controls = EdgingControls()
-    #     self.console = Console()
-    #     self.name = ""
-    #     self.serial = ""
-    #     self.hw_version = ""
-    #     self.fw_version = ""
-    #     self.orgasm_detection = OrgasmDetection() # These are horrible and I hate them but I can't be arsed to fix them right now.
-    #     self.state = State()
 
     def update_from_config(self, config: ConfigMessage):
         self.edging_controls.arousal_decay_rate = config.arousal_decay_rate
@@ -110,3 +123,7 @@ class Device():
         self.readings.pressure_avg = readings.pavg
         self.readings.pressure = readings.pressure
         self.state.run_mode = readings.run_mode
+
+    def apply_patch(self, patch: dict[str, object]) -> None:
+        for key, value in patch.items():
+            setattr(self, key, value)

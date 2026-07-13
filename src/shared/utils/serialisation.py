@@ -10,7 +10,7 @@ class EnumEncoder(json.JSONEncoder):
 
 def serialize(obj):
     if is_dataclass(obj):
-        obj = asdict(obj)
+        obj = asdict(obj) # type: ignore
 
     return obj
 

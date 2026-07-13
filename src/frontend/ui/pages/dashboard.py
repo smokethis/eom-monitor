@@ -1,8 +1,8 @@
-import json
 from nicegui import ui
 from frontend.api.client import LitestarApiClient
 from frontend.ui.widgets.info_card import InfoCard
 from frontend.services.device_service import DeviceService
+from frontend.ui.viewmodels.readings_vm import ReadingsViewModel
 
 class Dashboard:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
@@ -12,6 +12,7 @@ class Dashboard:
     async def render(self):
 
         ui.label("Dashboard").classes("text-3xl")
+        vm = ReadingsViewModel(self.service)
 
         with ui.row():
             ui.button("Initialise", on_click=self.initialise_and_refresh)
@@ -22,14 +23,10 @@ class Dashboard:
             InfoCard(self.service).render()
             # self.latest_event = ui.code("Waiting for events...",language="json")
 
-        # self.stream.subscribe(self.handle_event)
-
-        # await self.stream.start()
-
-    # async def start_stream(self):
-
-    #     ui.notify("Starting event stream...")
-    #     await self.client.start_stream()
+        with ui.row():
+            ui.label().bind_text_from(vm, 'arousal_level')
+            ui.label().bind_text_from(vm, 'pressure')
+            ui.label().bind_text_from(vm, 'time_since_power_on')
 
     async def initialise_and_refresh(self):
         await self.service.initialise()

@@ -5,10 +5,7 @@ class DeviceService:
     def __init__(self, client: LitestarApiClient):
         self.device = Device()
         self.client = client
-
-        # self.task = asyncio.create_task(
-        #     self.listen()
-        # )
+        self._listeners = []
     
     async def start(self):
         await self.initialise()
@@ -18,19 +15,20 @@ class DeviceService:
         self.device.update_from_info(info)
         config = await self.client.get_config()
         self.device.update_from_config(config)
-        
     
-    # async def listen(self):
-    #     async for event in self.client.events():
-    #         self.handle_event(event)
+    def subscribe(self, callback):
+        self._listeners.append(callback)
 
+    def unsubscribe(self, callback):
+        self._listeners.remove(callback)
 
-    # def apply_update(self, update):
-    #     target = self.device
+    async def stream(self):
+        await self.client.connect_stream()
 
-    #     parts = update.path.split(".")
+        while True:
+            patch = await self.client.receive_stream_message()
 
-    #     for part in parts[:-1]:
-    #         target = getattr(target, part)
+            self.device.apply_patch(patch)
 
-    #     setattr(target, parts[-1], update.value)
+            for callback in self._listeners:
+                callback(self.device, patch)
