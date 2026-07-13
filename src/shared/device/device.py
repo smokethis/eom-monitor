@@ -1,4 +1,4 @@
-from ..models.models import ConfigMessage, InfoMessage, ReadingsMessage
+from ..models.messages import ConfigMessage, InfoMessage, ReadingsMessage
 from .configuration import Configuration
 from .edging_controls import EdgingControls
 from .console import Console

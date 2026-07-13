@@ -1,5 +1,5 @@
 import httpx
-from shared.models.models import ConfigMessage, InfoMessage
+from shared.models.messages import ConfigMessage, InfoMessage
 
 LITESTAR_BASE = "http://localhost:8000/"
 

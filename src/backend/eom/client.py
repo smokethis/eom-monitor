@@ -5,7 +5,7 @@ import logging
 import asyncio
 import msgspec
 from enum import Enum
-from ...shared.models import models
+from ...shared.models import messages
 
 class ClientState(Enum):
     DISCONNECTED = "DISCONNECTED"
@@ -112,22 +112,22 @@ class Client():
 
             # Readings path
             if key == "readings":
-                reading = msgspec.convert(value, type=models.ReadingsMessage)
+                reading = msgspec.convert(value, type=messages.ReadingsMessage)
                 return reading
 
             # wifiStatus path
             if key == "wifiStatus":
-                wifi_status = msgspec.convert(value, type=models.WifiStatusMessage)
+                wifi_status = msgspec.convert(value, type=messages.WifiStatusMessage)
                 return wifi_status
 
             # Config path
             if key == "configList":
-                config = msgspec.convert(value, type=models.ConfigMessage)
+                config = msgspec.convert(value, type=messages.ConfigMessage)
                 return config
             
             # Info path
             if key == "info":
-                info = msgspec.convert(value, type=models.InfoMessage)
+                info = msgspec.convert(value, type=messages.InfoMessage)
                 return info
                         
             # SDcard path not implemented yet
