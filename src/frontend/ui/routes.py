@@ -1,15 +1,8 @@
 from nicegui import ui
 from .widgets.layout import Layout
 from .pages.dashboard import Dashboard
-import json
+from shared.utils import serialisation
 from dataclasses import asdict
-from enum import Enum
-
-class EnumEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Enum):
-            return obj.name
-        return super().default(obj)
 
 def register_routes(client,service):
 
@@ -33,7 +26,7 @@ def register_routes(client,service):
 
         with layout.content:
             ui.code(
-                json.dumps(d2, indent=2, cls=EnumEncoder),
+                serialisation.pretty_json(service.device),
                 language="json"
             )
 
