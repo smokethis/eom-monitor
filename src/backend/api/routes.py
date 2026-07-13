@@ -122,7 +122,7 @@ async def restart_device(service: DeviceService) -> None:
 
 @get("/ws/devices")
 async def device_socket(socket: WebSocket, bus: DeviceEventBus):
-    await socket.accept() # This seems wrong?
+    await socket.accept()
 
     queue = bus.subscribe()
 
