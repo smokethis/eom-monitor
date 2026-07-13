@@ -17,6 +17,7 @@ def register_routes(client,service):
         # This needs to come back but I can't be arsed right now.
         # ui.context.client.on_disconnect(dashboard.cleanup)
 
+    # Route and logic to retrieve serialised device state for debugging
     @ui.page("/view/{path:path}")
     async def view_info(path: str):
         layout = Layout()

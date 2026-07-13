@@ -14,7 +14,7 @@ class Dashboard:
         ui.label("Dashboard").classes("text-3xl")
 
         with ui.row():
-            ui.button("Initialise", on_click=self.service.initialise)
+            ui.button("Initialise", on_click=self.initialise_and_refresh)
             ui.button("Start stream", on_click=self.client.start_stream)
             ui.button("Restart device", on_click=self.client.restart)
 
@@ -30,6 +30,10 @@ class Dashboard:
 
     #     ui.notify("Starting event stream...")
     #     await self.client.start_stream()
+
+    async def initialise_and_refresh(self):
+        await self.service.initialise()
+        ui.navigate.reload()
 
     async def restart_device(self):
 
