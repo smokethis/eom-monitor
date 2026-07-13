@@ -5,7 +5,7 @@ import logging
 import asyncio
 import msgspec
 from enum import Enum
-from . import models
+from ...shared.models import models
 
 class ClientState(Enum):
     DISCONNECTED = "DISCONNECTED"

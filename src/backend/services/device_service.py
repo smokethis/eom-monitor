@@ -1,7 +1,7 @@
 import asyncio
 from ..eom.client import Client, ClientState
 from .device_bus import DeviceEventBus
-from ..eom.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
+from ...shared.models.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
 from ...shared.device.device import Device, DeviceRaw
 import logging
 from enum import Enum

@@ -1,5 +1,5 @@
 import httpx
-from backend.eom.models import ConfigMessage, InfoMessage
+from shared.models.models import ConfigMessage, InfoMessage
 
 LITESTAR_BASE = "http://localhost:8000/"
 
