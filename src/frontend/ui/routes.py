@@ -2,7 +2,7 @@ from nicegui import ui
 from .widgets.layout import Layout
 from .pages.dashboard import Dashboard
 
-def register_routes(client):
+def register_routes(client,service):
 
     # Root page
     @ui.page("/")
@@ -11,7 +11,7 @@ def register_routes(client):
         layout = Layout()
 
         with layout.content:
-            dashboard = Dashboard(client)
+            dashboard = Dashboard(client, service)
             await dashboard.render()
 
         # This needs to come back but I can't be arsed right now.

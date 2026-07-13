@@ -1,5 +1,6 @@
 import httpx
 from shared.models.messages import ConfigMessage, InfoMessage
+import msgspec
 
 LITESTAR_BASE = "http://localhost:8000/"
 
@@ -10,11 +11,11 @@ class LitestarApiClient:
 
     async def get_info(self) -> InfoMessage:
         response = await self.http.get("/api/raw/info")
-        return InfoMessage(**response.json())
+        return msgspec.convert(response.json(), type=InfoMessage)
     
     async def get_config(self) -> ConfigMessage:
         response = await self.http.get("/api/raw/config")
-        return ConfigMessage(**response.json())
+        return msgspec.convert(response.json(), type=ConfigMessage)
 
     async def restart(self) -> None:
         print("Someone POSTed to the restart endpoint!!!")

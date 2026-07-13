@@ -1,10 +1,9 @@
-import asyncio
 from shared.device.device import Device
-from ..api.client import LitestarApiClient
+from frontend.api.client import LitestarApiClient
 
 class DeviceService:
-    def __init__(self, client: LitestarApiClient, device: Device):
-        self.device = device
+    def __init__(self, client: LitestarApiClient):
+        self.device = Device()
         self.client = client
     
     async def start(self):
@@ -15,17 +14,10 @@ class DeviceService:
         # )
     
     async def initialise(self):
-        config = await self.client.get_config()
         info = await self.client.get_info()
-        self.update_from_config(config)
-        self.update_from_info(info)
-
-    def update_from_config(self, config):
-        self.device.update_from_config(config)
-    
-    def update_from_info(self, info):
         self.device.update_from_info(info)
-
+        config = await self.client.get_config()
+        self.device.update_from_config(config)
         
     
     # async def listen(self):
@@ -33,12 +25,12 @@ class DeviceService:
     #         self.handle_event(event)
 
 
-    def apply_update(self, update):
-        target = self.device
+    # def apply_update(self, update):
+    #     target = self.device
 
-        parts = update.path.split(".")
+    #     parts = update.path.split(".")
 
-        for part in parts[:-1]:
-            target = getattr(target, part)
+    #     for part in parts[:-1]:
+    #         target = getattr(target, part)
 
-        setattr(target, parts[-1], update.value)
+    #     setattr(target, parts[-1], update.value)

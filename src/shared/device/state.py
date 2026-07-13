@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from ...backend.models.modes import ControlMode
+from backend.models.modes import ControlMode
 
 @dataclass
 class State():
