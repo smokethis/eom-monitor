@@ -2,7 +2,7 @@ from litestar import Litestar
 from litestar.di import Provide
 from .api import routes
 from .eom.client import Client
-from .device.device import Device, DeviceRaw
+from ..shared.device.device import Device, DeviceRaw
 from .services.device_service import DeviceService
 from .services.device_bus import DeviceEventBus
 import logging

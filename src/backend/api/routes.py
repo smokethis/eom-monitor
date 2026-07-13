@@ -1,7 +1,7 @@
 from litestar import get, post, WebSocket
 from litestar.exceptions import HTTPException
 from ..eom.models import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
-from ..device.device import Device
+from ...shared.device.device import Device
 from ..services.device_bus import DeviceEventBus
 from collections import deque
 import msgspec
