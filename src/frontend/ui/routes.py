@@ -10,30 +10,31 @@ def register_routes(client,service):
     # Root page
     @ui.page("/")
     async def index():
-        layout = TitleBar()
-        with layout.content:
+        title = TitleBar()
+        with title.content:
             dashboard = Dashboard(client, service)
             dashboard.render()
 
         # This needs to come back but I can't be arsed right now.
         # ui.context.client.on_disconnect(dashboard.cleanup)
     
+    # Edging page
     @ui.page("/edging")
     async def edging_page():
-            layout = TitleBar()
-            with layout.content:
-                edging = Edging(client, service)
-                await edging.render()
+        title = TitleBar()
+        with title.content:
+            edging = Edging(client, service)
+            edging.render()
 
-    # Route and logic to retrieve serialised device state for debugging
+    # Route and logic to retrieve serialised device state for debugging. It might be shit?
     @ui.page("/view/{path:path}")
     async def view_info(path: str):
-        layout = TitleBar()
+        title = TitleBar()
 
         data = resolve_path(service, path)
         d2 = asdict(data)
 
-        with layout.content:
+        with title.content:
             ui.code(
                 serialisation.pretty_json(service.device),
                 language="json"

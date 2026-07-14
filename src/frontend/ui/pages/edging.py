@@ -10,7 +10,7 @@ class Edging:
         self.service = service
         self.vm = EdgingGraphViewModel(self.service)
 
-    async def textbox(self):
+    def textbox(self):
         with ui.card() as self.card:
             ui.label("Raw instant data").classes('font-bold')
             with ui.grid(columns=2).classes('gap-x-4 gap-y-2'):
@@ -26,35 +26,32 @@ class Edging:
                 ui.label('Motor speed:')
                 ui.label().bind_text_from(self.vm, 'motor_speed')
 
-        return self.card
+    def poc_graph(self):
+        options = {
+            "title": {
+                "text": "Motor speed",
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [5, 90, 56],
+            },
+            "yAxis": {
+                "type": "value",
+            },
+            "series": [
+                {
+                    "name": "RPM",
+                    "type": "line",
+                    "data": [15, 25, 222],
+                }
+            ],
+        }
 
-    # async def poc_graph(self):
-    #     options = {
-    #         "title": {
-    #             "text": "Motor speed",
-    #         },
-    #         "xAxis": {
-    #             "type": "category",
-    #             "data": [5, 90, 56],
-    #         },
-    #         "yAxis": {
-    #             "type": "value",
-    #         },
-    #         "series": [
-    #             {
-    #                 "name": "RPM",
-    #                 "type": "line",
-    #                 "data": [15, 25, 222],
-    #             }
-    #         ],
-    #     }
+        chart = ui.echart(options)
+        return chart
 
-    #     chart = ui.echart(options)
-    #     return chart
-
-    # async def render(self):
-    #     ui.label("Edging").classes("text-3xl")
-    #     await self.textbox()
-    #     # await self.graph()
-    #     graph = EdgingChart
+    def render(self):
+        ui.label("Edging").classes("text-3xl")
+        self.textbox()
+        self.poc_graph()
         
