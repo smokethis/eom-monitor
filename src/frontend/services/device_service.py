@@ -33,7 +33,7 @@ class DeviceService:
 
             for callback in self._listeners:
                 try:
-                    callback(self.device, patch)
+                    callback(self.device)
                 except Exception:
                     import traceback
                     traceback.print_exc()

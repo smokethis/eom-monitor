@@ -1,6 +1,7 @@
 from nicegui import ui
 from .widgets.layout import Layout
 from .pages.dashboard import Dashboard
+from .pages.edging import Edging
 from src.shared.utils import serialisation
 from dataclasses import asdict
 
@@ -16,6 +17,13 @@ def register_routes(client,service):
 
         # This needs to come back but I can't be arsed right now.
         # ui.context.client.on_disconnect(dashboard.cleanup)
+    
+    @ui.page("/edging")
+    async def edging_page():
+            layout = Layout()
+            with layout.content:
+                edging = Edging(client, service)
+                await edging.render()
 
     # Route and logic to retrieve serialised device state for debugging
     @ui.page("/view/{path:path}")

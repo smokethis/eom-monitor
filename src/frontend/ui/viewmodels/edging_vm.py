@@ -1,10 +1,11 @@
 from src.shared.device.device import Device
 
-class ReadingsViewModel():
+class EdgingGraphViewModel():
     def __init__(self, service):
         self.arousal_level = 0
         self.pressure = 0
         self.time_since_power_on = 0
+        self.motor_speed = 0
         self.service = service
 
         service.subscribe(self.device_updated)
@@ -24,6 +25,8 @@ class ReadingsViewModel():
     def device_updated(self, device: Device):
         self.pressure = device.readings.pressure
         self.time_since_power_on = device.state.time_since_power_on
+        self.motor_speed = device.state.motor_speed
+        self.arousal_level = device.edging_controls.arousal_threshold
     
     def dispose(self):
         self.service.unsubscribe(self.device_updated)

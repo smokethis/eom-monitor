@@ -9,6 +9,7 @@ class Layout:
             ui.space()
 
             ui.button('Dashboard', on_click=lambda: ui.navigate.to('/'))
+            ui.button('Edging', on_click=lambda: ui.navigate.to('/edging'))
             ui.button('View Device', on_click=lambda: ui.navigate.to('/view/device'))
 
         self.content = ui.column().classes('w-full p-4')
