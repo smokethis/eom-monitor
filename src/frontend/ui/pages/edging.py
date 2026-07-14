@@ -2,13 +2,18 @@ from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingGraphViewModel
-# from widgets.edging_chart import EdgingChart
+from src.frontend.ui.widgets.edging_chart import EdgingChart
 
 class Edging:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
         self.client = client
         self.service = service
         self.vm = EdgingGraphViewModel(self.service)
+    
+    def render(self):
+        ui.label("Edging").classes("text-3xl")
+        self.textbox()
+        self.poc_graph()
 
     def textbox(self):
         with ui.card() as self.card:
@@ -50,8 +55,4 @@ class Edging:
         chart = ui.echart(options)
         return chart
 
-    def render(self):
-        ui.label("Edging").classes("text-3xl")
-        self.textbox()
-        self.poc_graph()
         

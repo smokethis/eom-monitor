@@ -20,7 +20,7 @@ def register_routes(client,service):
     
     # Edging page
     @ui.page("/edging")
-    async def edging_page():
+    async def edging():
         title = TitleBar()
         with title.content:
             edging = Edging(client, service)
