@@ -9,18 +9,6 @@ class EdgingGraphViewModel():
         self.service = service
 
         service.subscribe(self.device_updated)
-
-    # def device_updated(self, device: Device, patch):
-    #     print("device_updated fired: %s", patch)
-    #     if "arousal_level" in patch["readings"]:
-    #         self.arousal_level = device.readings.arousal_level
-
-    #     if "pressure" in patch["readings"]:
-    #         self.pressure = device.readings.pressure
-
-    #     if "time_since_power_on" in patch["state"]:
-    #         self.time_since_power_on = device.state.time_since_power_on
-            # print("ViewModel Update: time_since_power_on now %s", self.time_since_power_on)
         
     def device_updated(self, device: Device):
         self.pressure = device.readings.pressure
