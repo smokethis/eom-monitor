@@ -2,7 +2,6 @@ from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingGraphViewModel
-from src.frontend.ui.widgets.edging_chart import EdgingChart
 
 class Edging:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
