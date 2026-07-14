@@ -2,30 +2,57 @@ from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingGraphViewModel
+from src.frontend.ui.components.line_chart import LiveLineChart
 
 class Edging:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
         self.client = client
         self.service = service
+        self.vm = EdgingGraphViewModel(self.service)
 
-    async def render(self):
-
-        ui.label("Edging").classes("text-3xl")
-        vm = EdgingGraphViewModel(self.service)
-
+    async def textbox(self):
         with ui.card() as self.card:
             ui.label("Raw instant data").classes('font-bold')
             with ui.grid(columns=2).classes('gap-x-4 gap-y-2'):
                 ui.label('Time since power on:')
-                ui.label().bind_text_from(vm, 'time_since_power_on')
+                ui.label().bind_text_from(self.vm, 'time_since_power_on')
 
                 ui.label('Pressure:')
-                ui.label().bind_text_from(vm, 'pressure')
+                ui.label().bind_text_from(self.vm, 'pressure')
 
                 ui.label('Arousal level:')
-                ui.label().bind_text_from(vm, 'arousal_level')
+                ui.label().bind_text_from(self.vm, 'arousal_level')
 
                 ui.label('Motor speed:')
-                ui.label().bind_text_from(vm, 'motor_speed')
+                ui.label().bind_text_from(self.vm, 'motor_speed')
 
         return self.card
+
+    async def graph(self):
+        options = {
+            "title": {
+                "text": "Motor speed",
+            },
+            "xAxis": {
+                "type": "category",
+                "data": [5, 90, 56],
+            },
+            "yAxis": {
+                "type": "value",
+            },
+            "series": [
+                {
+                    "name": "RPM",
+                    "type": "line",
+                    "data": [15, 25, 222],
+                }
+            ],
+        }
+
+        chart = ui.echart(options)
+        return chart
+
+    async def render(self):
+        ui.label("Edging").classes("text-3xl")
+        await self.textbox()
+        await self.graph()
