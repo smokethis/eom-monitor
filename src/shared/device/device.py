@@ -7,7 +7,6 @@ from .readings import Readings
 from .state import State
 from dataclasses import dataclass, field
 from collections import deque
-from typing import Callable
 import logging
 
 # Get a logger specific to this file
@@ -110,8 +109,7 @@ class Device():
         for key, value in patch.items():
             current = getattr(self, key)
 
-            if isinstance(value, dict):
-                for subkey, subvalue in value.items():
-                    setattr(current, subkey, subvalue)
+            if hasattr(current, "apply_patch") and isinstance(value, dict):
+                current.apply_patch(value)
             else:
                 setattr(self, key, value)

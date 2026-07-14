@@ -19,3 +19,11 @@ class Configuration():
     serial: Serial = field(default_factory=Serial)
     console: Console = field(default_factory=Console)
 
+    def apply_patch(self, patch: dict[str, object]) -> None:
+        for key, value in patch.items():
+            current = getattr(self, key)
+
+            if hasattr(current, "apply_patch") and isinstance(value, dict):
+                current.apply_patch(value)
+            else:
+                setattr(self, key, value)

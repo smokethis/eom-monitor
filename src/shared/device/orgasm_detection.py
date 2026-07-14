@@ -17,3 +17,7 @@ class OrgasmDetection():
     clench_arousal_boost:bool = False
     clench_arousal_boost_amount:int= 0
     detection_armed:bool= False
+
+    def apply_patch(self, patch):
+        for key, value in patch.items():
+            setattr(self, key, value)

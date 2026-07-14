@@ -7,3 +7,7 @@ class Motor():
     max_speed: int = 0
     ramp_time: int = 0 # Seconds
     vibration_mode: VibrationMode = VibrationMode.RampStop
+
+    def apply_patch(self, patch: dict[str, object]) -> None:
+        for key, value in patch.items():
+            setattr(self, key, value)

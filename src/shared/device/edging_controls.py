@@ -14,3 +14,12 @@ class EdgingControls():
     arousal_decay_rate: int = 0 # ?
     run_mode:str = ""
     motor_settings:Motor = field(default_factory=Motor)
+
+    def apply_patch(self, patch: dict[str, object]) -> None:
+        for key, value in patch.items():
+            current = getattr(self, key)
+
+            if hasattr(current, "apply_patch") and isinstance(value, dict):
+                current.apply_patch(value)
+            else:
+                setattr(self, key, value)

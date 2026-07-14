@@ -12,3 +12,6 @@ class Readings():
     # detect_sustained_ms: int
     # detect_last_interval_ms: int
 
+    def apply_patch(self, patch):
+        for key, value in patch.items():
+            setattr(self, key, value)

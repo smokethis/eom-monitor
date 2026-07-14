@@ -8,3 +8,7 @@ class Display():
     screensaver: bool = False
     reverse_scroll: bool = False
     denial_count_mode: int = 0
+
+    def apply_patch(self, patch: dict[str, object]) -> None:
+        for key, value in patch.items():
+            setattr(self, key, value)
