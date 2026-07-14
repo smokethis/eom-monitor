@@ -2,7 +2,7 @@ from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingGraphViewModel
-from src.frontend.ui.components.line_chart import LiveLineChart
+# from widgets.edging_chart import EdgingChart
 
 class Edging:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
@@ -28,31 +28,33 @@ class Edging:
 
         return self.card
 
-    async def graph(self):
-        options = {
-            "title": {
-                "text": "Motor speed",
-            },
-            "xAxis": {
-                "type": "category",
-                "data": [5, 90, 56],
-            },
-            "yAxis": {
-                "type": "value",
-            },
-            "series": [
-                {
-                    "name": "RPM",
-                    "type": "line",
-                    "data": [15, 25, 222],
-                }
-            ],
-        }
+    # async def poc_graph(self):
+    #     options = {
+    #         "title": {
+    #             "text": "Motor speed",
+    #         },
+    #         "xAxis": {
+    #             "type": "category",
+    #             "data": [5, 90, 56],
+    #         },
+    #         "yAxis": {
+    #             "type": "value",
+    #         },
+    #         "series": [
+    #             {
+    #                 "name": "RPM",
+    #                 "type": "line",
+    #                 "data": [15, 25, 222],
+    #             }
+    #         ],
+    #     }
 
-        chart = ui.echart(options)
-        return chart
+    #     chart = ui.echart(options)
+    #     return chart
 
-    async def render(self):
-        ui.label("Edging").classes("text-3xl")
-        await self.textbox()
-        await self.graph()
+    # async def render(self):
+    #     ui.label("Edging").classes("text-3xl")
+    #     await self.textbox()
+    #     # await self.graph()
+    #     graph = EdgingChart
+        

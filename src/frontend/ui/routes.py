@@ -1,5 +1,5 @@
 from nicegui import ui
-from .widgets.layout import Layout
+from .widgets.title_bar import TitleBar
 from .pages.dashboard import Dashboard
 from .pages.edging import Edging
 from src.shared.utils import serialisation
@@ -10,17 +10,17 @@ def register_routes(client,service):
     # Root page
     @ui.page("/")
     async def index():
-        layout = Layout()
+        layout = TitleBar()
         with layout.content:
             dashboard = Dashboard(client, service)
-            await dashboard.render()
+            dashboard.render()
 
         # This needs to come back but I can't be arsed right now.
         # ui.context.client.on_disconnect(dashboard.cleanup)
     
     @ui.page("/edging")
     async def edging_page():
-            layout = Layout()
+            layout = TitleBar()
             with layout.content:
                 edging = Edging(client, service)
                 await edging.render()
@@ -28,7 +28,7 @@ def register_routes(client,service):
     # Route and logic to retrieve serialised device state for debugging
     @ui.page("/view/{path:path}")
     async def view_info(path: str):
-        layout = Layout()
+        layout = TitleBar()
 
         data = resolve_path(service, path)
         d2 = asdict(data)

@@ -1,6 +1,6 @@
 from nicegui import ui
 
-class Layout:
+class TitleBar:
 
     def __init__(self):
         with ui.header().classes('bg-blue-800 text-white items-center'):

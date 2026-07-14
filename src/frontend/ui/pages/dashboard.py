@@ -1,18 +1,14 @@
 from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
-from src.frontend.ui.widgets.info_card import InfoCard
 from src.frontend.services.device_service import DeviceService
-from src.frontend.ui.viewmodels.readings_vm import ReadingsViewModel
 
 class Dashboard:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
         self.client = client
         self.service = service
 
-    async def render(self):
-
+    def render(self):
         ui.label("Dashboard").classes("text-3xl")
-        vm = ReadingsViewModel(self.service)
 
         with ui.row():
             ui.button("Initialise", on_click=self.initialise_and_refresh)
@@ -20,18 +16,18 @@ class Dashboard:
             ui.button("Restart device", on_click=self.client.restart)
 
         with ui.row():
-            InfoCard(self.service).render()
-            # self.latest_event = ui.code("Waiting for events...",language="json")
+            self.info_card()
 
-        # with ui.row():
-        #     ui.label().bind_text_from(vm, 'arousal_level')
-        #     ui.label().bind_text_from(vm, 'pressure')
-        #     ui.label().bind_text_from(vm, 'time_since_power_on')
+    def info_card(self):
+        with ui.card():
+            ui.label(f"Hostname: {self.service.device.name}")
+            ui.label(f"Arousal Threshold: {self.service.device.edging_controls.arousal_threshold}")
+            ui.label(f"Sensor Sensitivity: {self.service.device.edging_controls.sensor_sensitivity}")
 
     async def initialise_and_refresh(self):
         await self.service.initialise()
         ui.navigate.reload()
 
-    async def restart_device(self):
-
+    def restart_device(self):
+        # This is fucked and I don't know why. It never runs.
         ui.notify("Restarting device...")
