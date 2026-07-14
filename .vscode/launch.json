@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "NiceGUI Debugging",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.frontend.main",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Turbo Litestar Debugging",
             "type": "debugpy",
             "request": "launch",

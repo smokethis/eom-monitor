@@ -1,5 +1,5 @@
 from nicegui import ui
-from frontend.services.device_service import DeviceService
+from src.frontend.services.device_service import DeviceService
 
 class InfoCard:
 

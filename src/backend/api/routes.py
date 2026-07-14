@@ -1,4 +1,4 @@
-from litestar import get, post, WebSocket
+from litestar import get, post, WebSocket, websocket
 from litestar.exceptions import HTTPException
 from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
 from ...shared.device.device import Device
@@ -7,29 +7,9 @@ from collections import deque
 import msgspec
 from ..services.device_service import DeviceService, DeviceState
 
+clients: set[WebSocket] = set()
+
 json_encoder = msgspec.json.Encoder()
-
-# Readings API Endpoint.
-# @get("/api/readings")
-# async def get_readings() -> ServerSentEvent:
-
-#     queue = eom.readings_bus.subscribe()
-#     logging.debug("Subscriber Joined Queue")
-
-#     async def stream():
-#         try:
-#             while True:
-#                 reading = await queue.get()
-#                 yield {
-#                     "event": "message",
-#                     "data": json_encoder.encode(reading).decode()
-#                     }
-
-#         finally:
-#             eom.readings_bus.unsubscribe(queue)
-#             logging.debug("Subscriber Left Queue")
-
-#     return ServerSentEvent(stream())
 
 # Static API Endpoints
 @get("/api/raw/config")
@@ -120,19 +100,28 @@ async def get_service(service: DeviceService) -> DeviceService:
 async def restart_device(service: DeviceService) -> None:
     await service.restart()
 
-@get("/api/stream")
-async def device_socket(socket: WebSocket, bus: DeviceEventBus):
+# @websocket("/api/stream")
+# async def stream(socket: WebSocket, bus: DeviceEventBus) -> None:
+#     print("🚀 websocket handler entered")
+
+#     await socket.accept()
+
+#     queue = bus.subscribe()
+
+#     while True:
+#         event = await queue.get()
+#         await socket.send_json(event)
+
+@websocket("/api/stream")
+async def stream(socket: WebSocket, event_bus: DeviceEventBus) -> None:
     await socket.accept()
 
-    queue = bus.subscribe()
+    queue = event_bus.subscribe()
 
     try:
         while True:
             event = await queue.get()
-            yield {
-                    "event": "message",
-                    "data": json_encoder.encode(event).decode()
-                    }
+            await socket.send_json(event)
 
     finally:
-        bus.unsubscribe(queue)
+        event_bus.unsubscribe(queue)

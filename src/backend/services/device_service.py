@@ -5,7 +5,6 @@ from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessag
 from ...shared.device.device import Device, DeviceRaw
 import logging
 from enum import Enum
-import msgspec
 from dataclasses import fields
 from copy import deepcopy
 
@@ -106,9 +105,7 @@ class DeviceService():
                 logger.warning("Unknown message recevied: %t", type(message))
     
     def publish_to_bus(self, changes):
-        # json = msgspec.json.encode(message)
-        json = msgspec.json.encode(changes)
-        self.event_bus.publish(json)
+        self.event_bus.publish(changes)
     
     def get_device(self) -> Device:
         return self.device

@@ -61,6 +61,7 @@ app = Litestar(
         routes.get_info,
         routes.update_config,
         routes.update_info,
+        routes.stream,
         # set_mode, 
         # set_motor_speed,
         # set_config

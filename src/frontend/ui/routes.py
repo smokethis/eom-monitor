@@ -1,7 +1,7 @@
 from nicegui import ui
 from .widgets.layout import Layout
 from .pages.dashboard import Dashboard
-from shared.utils import serialisation
+from src.shared.utils import serialisation
 from dataclasses import asdict
 
 def register_routes(client,service):

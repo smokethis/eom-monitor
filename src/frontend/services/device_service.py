@@ -1,5 +1,5 @@
-from shared.device.device import Device
-from frontend.api.client import LitestarApiClient
+from src.shared.device.device import Device
+from src.frontend.api.client import LitestarApiClient
 
 class DeviceService:
     def __init__(self, client: LitestarApiClient):
@@ -9,6 +9,7 @@ class DeviceService:
     
     async def start(self):
         await self.initialise()
+        await self.stream()
 
     async def initialise(self):
         info = await self.client.get_info()
@@ -31,4 +32,8 @@ class DeviceService:
             self.device.apply_patch(patch)
 
             for callback in self._listeners:
-                callback(self.device, patch)
+                try:
+                    callback(self.device, patch)
+                except Exception:
+                    import traceback
+                    traceback.print_exc()

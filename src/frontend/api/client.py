@@ -1,5 +1,5 @@
 import httpx
-from shared.models.messages import ConfigMessage, InfoMessage
+from ...shared.models.messages import ConfigMessage, InfoMessage
 import msgspec
 import websockets
 import json
@@ -12,7 +12,6 @@ WEBSOCKETS_BASE = (f"ws://{LITESTAR_ADDRESS}")
 
 class LitestarApiClient:
     def __init__(self):
-        # self.base_uri = REST_BASE # I think this is bobbins and can go
         self.http = httpx.AsyncClient(base_url=REST_BASE)
         self.websocket = None
 

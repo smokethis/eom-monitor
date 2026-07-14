@@ -7,8 +7,12 @@ from .readings import Readings
 from .state import State
 from dataclasses import dataclass, field
 from collections import deque
-from collections import defaultdict
 from typing import Callable
+import logging
+
+# Get a logger specific to this file
+logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.DEBUG)
 
 class DeviceRaw():
     def __init__(self):
@@ -18,29 +22,7 @@ class DeviceRaw():
         self.readings_history = deque(maxlen=1000) # Should be enough for about the last 20 seconds at 50Hz
 
 @dataclass(slots=True)
-class Observable:
-    _listeners: dict[str, list[Callable]] = field(
-        default_factory=dict,
-        init=False,
-        repr=False
-    )
-
-    def subscribe(self, name: str, callback: Callable):
-        self._listeners.setdefault(name, []).append(callback)
-
-    def _notify(self, property_name: str, value):
-        for callback in self._listeners[property_name]:
-            callback(value)
-
-    def __setattr__(self, name, value):
-        object.__setattr__(self, name, value)
-
-        listeners = getattr(self, "_listeners", None)
-        if listeners and name in listeners:
-            self._notify(name, value)
-
-@dataclass(slots=True)
-class Device(Observable):
+class Device():
     name: str = ""
     serial: str = ""
     hw_version: str = ""
@@ -126,4 +108,10 @@ class Device(Observable):
 
     def apply_patch(self, patch: dict[str, object]) -> None:
         for key, value in patch.items():
-            setattr(self, key, value)
+            current = getattr(self, key)
+
+            if isinstance(value, dict):
+                for subkey, subvalue in value.items():
+                    setattr(current, subkey, subvalue)
+            else:
+                setattr(self, key, value)

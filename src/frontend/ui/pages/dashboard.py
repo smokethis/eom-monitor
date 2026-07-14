@@ -1,8 +1,8 @@
 from nicegui import ui
-from frontend.api.client import LitestarApiClient
-from frontend.ui.widgets.info_card import InfoCard
-from frontend.services.device_service import DeviceService
-from frontend.ui.viewmodels.readings_vm import ReadingsViewModel
+from src.frontend.api.client import LitestarApiClient
+from src.frontend.ui.widgets.info_card import InfoCard
+from src.frontend.services.device_service import DeviceService
+from src.frontend.ui.viewmodels.readings_vm import ReadingsViewModel
 
 class Dashboard:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
