@@ -1,6 +1,7 @@
 from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
+from src.frontend.ui.components.layout import page_layout
 
 class Dashboard:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
@@ -8,15 +9,15 @@ class Dashboard:
         self.service = service
 
     def render(self):
-        ui.label("Dashboard").classes("text-3xl")
+        with page_layout("EOM Dashboard"):
 
-        with ui.row():
-            ui.button("Initialise", on_click=self.initialise_and_refresh)
-            ui.button("Start stream", on_click=self.client.start_stream)
-            ui.button("Restart device", on_click=self.client.restart)
+            with ui.row():
+                ui.button("Initialise", on_click=self.initialise_and_refresh)
+                ui.button("Start stream", on_click=self.client.start_stream)
+                ui.button("Restart device", on_click=self.client.restart)
 
-        with ui.row():
-            self.info_card()
+            with ui.row():
+                self.info_card()
 
     def info_card(self):
         with ui.card():
