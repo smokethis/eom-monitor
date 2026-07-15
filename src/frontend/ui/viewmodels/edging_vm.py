@@ -8,9 +8,9 @@ class EdgingViewModel():
         self.time_since_power_on = 0
         self.motor_speed = 0
         self.service = service
-        self.arousal_level_history = deque(maxlen=1000)
-        self.pressure_history = deque(maxlen=1000)
-        self.motor_speed_history = deque(maxlen=1000)
+        self.arousal_level_history = deque(maxlen=200)
+        self.pressure_history = deque(maxlen=200)
+        self.motor_speed_history = deque(maxlen=200)
 
         service.subscribe(self.device_updated)
         
@@ -19,7 +19,7 @@ class EdgingViewModel():
         self.pressure = device.readings.pressure
         self.time_since_power_on = device.state.time_since_power_on
         self.motor_speed = device.state.motor_speed
-        self.arousal_level = device.edging_controls.arousal_threshold
+        self.arousal_level = device.readings.arousal_level
 
         # Update history deques
         self.pressure_history.append((device.state.time_since_power_on, device.readings.pressure))
