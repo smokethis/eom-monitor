@@ -1,22 +1,25 @@
 import asyncio
 from ..eom.websocketclient import Client, ClientState
+from ..eom.serialclient import SerialClient
 from .device_bus import DeviceEventBus
-from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
+from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage, SerialMessage
 from ...shared.device.device import Device, DeviceRaw
 import logging
 from enum import Enum
 from dataclasses import fields
+from msgspec.structs import asdict
 from copy import deepcopy
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 class DeviceState(Enum):
     STANDBY = "STANDBY"
     STREAMING = "STREAMING"
 
 class DeviceService():
-    def __init__(self, client: Client, device: Device, raw: DeviceRaw, event_bus: DeviceEventBus):
+    def __init__(self, client: Client | SerialClient, device: Device, raw: DeviceRaw, event_bus: DeviceEventBus):
         self.client = client
         self.device = device
         self.raw = raw
@@ -75,6 +78,9 @@ class DeviceService():
         # self.device.update_from_wifistatus(message)
         pass
 
+    def _apply_serial(self, message: SerialMessage):
+        self.device.update_from_serial(message)
+
     def _process_message(self, message):
         match message:
             case ConfigMessage():
@@ -101,10 +107,17 @@ class DeviceService():
                 new = self.get_device()
                 changes = self.diff_device(old, new)
                 self.publish_to_bus(changes)
+            case SerialMessage():
+                self._apply_serial(message)
+                changes = asdict(message)
+                self.publish_to_bus(changes)
+            case None:
+                pass
             case _:
                 logger.warning("Unknown message recevied: %t", type(message))
     
     def publish_to_bus(self, changes):
+        print("Bus object: ", changes)
         self.event_bus.publish(changes)
     
     def get_device(self) -> Device:
@@ -124,12 +137,12 @@ class DeviceService():
 
     async def _listen(self):
         while True:
-            logger.debug("Listening for messages on internal queue...")
+            logger.debug("Listening for messages on internal queue...") # Why aren't you working you turd
             message = await self.client.events.get()
             logger.debug(f"Got message: {message!r}")
             self._process_message(message)
-            logger.debug("Processed message")
 
     async def run(self):
         while True:
             await self._listen()
+ 

@@ -8,7 +8,7 @@ class DeviceService:
         self._listeners = []
     
     async def start(self):
-        await self.initialise()
+        # await self.initialise()
         await self.stream()
 
     async def initialise(self):
@@ -28,7 +28,6 @@ class DeviceService:
 
         while True:
             patch = await self.client.receive_stream_message()
-
             self.device.apply_patch(patch)
 
             for callback in self._listeners:

@@ -1,12 +1,13 @@
 import asyncio
 import serial_asyncio
 import csv
-from shared.models.messages import SerialMessage
+from src.shared.models.messages import SerialMessage
 
-class SerialReader:
+class SerialClient:
     def __init__(self, port, baud):
         self.port = port
         self.baud = baud
+        self.events = asyncio.Queue()
 
     async def run(self) -> str:
         while True:
@@ -22,7 +23,8 @@ class SerialReader:
                     if not line:
                         break
 
-                    self.parse_line(line.decode().strip())
+                    r = self.parse_line(line.decode().strip())
+                    await self.events.put(r)
 
             except Exception as ex:
                 print(ex)

@@ -1,4 +1,4 @@
-from ..models.messages import ConfigMessage, InfoMessage, ReadingsMessage
+from ..models.messages import ConfigMessage, InfoMessage, ReadingsMessage, SerialMessage
 from .configuration import Configuration
 from .edging_controls import EdgingControls
 from .console import Console
@@ -104,6 +104,18 @@ class Device():
         self.readings.pressure_avg = readings.pavg
         self.readings.pressure = readings.pressure
         self.state.run_mode = readings.run_mode
+    
+    def update_from_serial(self, message: SerialMessage):
+        self.readings.pressure_avg = message.pavg
+        self.readings.arousal_level = message.arousal
+        self.state.motor_speed = message.motor
+        self.edging_controls.arousal_threshold = message.sensitivity_threshold
+        # self.orgasm_detection.detection_armed = message.detect_state # This is fucky and I don't care right now 
+        # self.orgasm_detection.mode = message.detect_rhytmic # This is also fucky
+        # self.orgasm_detection = message.detect_baseline # Also fucky
+        # self.orgasm_detection = message.detect_sustained_ms # Fucky
+        # self.orgasm_detection = message.detect_peak_count # Fuckery
+        # self.orgasm_detection = message.detect_last_interval_ms # Woo
 
     def apply_patch(self, patch: dict[str, object]) -> None:
         for key, value in patch.items():

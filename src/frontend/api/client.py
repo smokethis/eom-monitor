@@ -47,5 +47,6 @@ class LitestarApiClient:
 
         # If your endpoint sends JSON text
         data = json.loads(raw)
+        print(data)
 
         return data
