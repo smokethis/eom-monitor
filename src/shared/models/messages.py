@@ -85,3 +85,15 @@ class WifiStatusMessage(Struct):
     ssid: str
     ip: str
     rssi: int
+
+class SerialMessage(Struct):
+    pavg: int    
+    arousal: int
+    motor: int
+    sensitivity_threshold: int
+    detect_state: int
+    detect_rhytmic: str
+    detect_baseline: int
+    detect_sustained_ms: int
+    detect_peak_count: int
+    detect_last_interval_ms: int

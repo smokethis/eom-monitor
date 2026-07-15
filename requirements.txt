@@ -4,3 +4,5 @@ msgspec
 websockets
 nicegui
 httpx
+pyserial
+pyserial-asyncio

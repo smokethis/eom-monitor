@@ -1,5 +1,5 @@
 import asyncio
-from ..eom.client import Client, ClientState
+from ..eom.websocketclient import Client, ClientState
 from .device_bus import DeviceEventBus
 from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage
 from ...shared.device.device import Device, DeviceRaw
