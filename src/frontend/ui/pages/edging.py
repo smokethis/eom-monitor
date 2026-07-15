@@ -1,4 +1,5 @@
 from nicegui import ui
+from nicegui.javascript_request import JavaScriptRequest
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingViewModel
@@ -34,6 +35,9 @@ class Edging:
                 ui.label('Arousal level:')
                 ui.label().bind_text_from(self.vm, 'arousal_level')
 
+                ui.label('Arousal percent:')
+                ui.label().bind_text_from(self.vm, "arousal_percent")
+
                 ui.label('Motor speed:')
                 ui.label().bind_text_from(self.vm, 'motor_speed')
     
@@ -45,7 +49,7 @@ class Edging:
                 {
                     "type": "gauge",
                     "min": 0,
-                    "max": 255,
+                    "max": 100,
                     "progress": {
                         "show": True,
                         "width": 18
@@ -98,7 +102,7 @@ class Edging:
                     "center": ['50%', '75%'],
                     "radius": '90%',
                     "min": 0,
-                    "max": 4096,
+                    "max": 100,
                     "splitNumber": 8,
                     "axisLine": {
                         "lineStyle": {
@@ -184,32 +188,35 @@ class Edging:
                 "minorTick": {
                     "show": True
                 },
-                "splitLine": {
-                    "lineStyle": {
-                        "color": "#999"
-                    }
-                },
-                "minorSplitLine": {
-                    "show": True,
-                    "lineStyle": {
-                        "color": "#ddd"
-                    }
-                }
+                # "splitLine": {
+                #     "lineStyle": {
+                #         "color": "#999"
+                #     }
+                # },
+                # "minorSplitLine": {
+                #     "show": True,
+                #     "lineStyle": {
+                #         "color": "#ddd"
+                #     }
+                # }
             },
             "legend": {},
             "yAxis": [
                     {
                         "type": "value",
-                        "name": "bignumber",
+                        "name": "Raw",
                         "min": "0",
                         "max": "4096",
-                        "position": "left"
+                        "position": "left",
+                        "splitLine": {
+                            "show": False
+                        }
                     },
                     {
                         "type": "value",
-                        "name": "smallnumber",
+                        "name": "Percent %",
                         "min": 0,
-                        "max": 255,
+                        "max": 100,
                         "position": "right"
                     },
 
@@ -219,19 +226,22 @@ class Edging:
                     "name": "Pressure",
                     "type": "line",
                     "data": [],
-                    "yAxisIndex": 0
+                    "yAxisIndex": 0,
+                    "showSymbol": False
                 },
                 {
                     "name": "Arousal level",
                     "type": "line",
                     "data": [],
-                    "yAxisIndex": 0
+                    "yAxisIndex": 1,
+                    "showSymbol": False
                 },
                 {
                     "name": "Motor speed",
                     "type": "line",
                     "data": [],
-                    "yAxisIndex": 1
+                    "yAxisIndex": 1,
+                    "showSymbol": False
                 }
             ],
         }
@@ -257,7 +267,7 @@ class Edging:
                     {
                         "data": [
                             {
-                                "value": self.vm.motor_speed
+                                "value": round(self.vm.motor_percent)
                             }
                         ]
                     }
@@ -271,7 +281,7 @@ class Edging:
                     {
                         "data": [
                             {
-                                "value": self.vm.arousal_level
+                                "value": round(self.vm.arousal_percent)
                             }
                         ]
                     }
