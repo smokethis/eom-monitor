@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 # Debug mode on
 logging.basicConfig(level=logging.DEBUG)
 
-class Client():
+class WebClient():
     
     def __init__(self, ip: str, port: int):
         self.uri = f"ws://{ip}:{port}/"

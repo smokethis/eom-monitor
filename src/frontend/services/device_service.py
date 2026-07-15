@@ -8,7 +8,7 @@ class DeviceService:
         self._listeners = []
     
     async def start(self):
-        # await self.initialise()
+        await self.initialise()
         await self.stream()
 
     async def initialise(self):

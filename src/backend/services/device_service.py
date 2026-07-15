@@ -1,5 +1,5 @@
 import asyncio
-from ..eom.websocketclient import Client, ClientState
+from ..eom.websocketclient import WebClient, ClientState
 from ..eom.serialclient import SerialClient
 from .device_bus import DeviceEventBus
 from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage, SerialMessage
@@ -7,33 +7,33 @@ from ...shared.device.device import Device, DeviceRaw
 import logging
 from enum import Enum
 from dataclasses import fields
-from msgspec.structs import asdict
 from copy import deepcopy
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 class DeviceState(Enum):
     STANDBY = "STANDBY"
     STREAMING = "STREAMING"
 
 class DeviceService():
-    def __init__(self, client: Client | SerialClient, device: Device, raw: DeviceRaw, event_bus: DeviceEventBus):
-        self.client = client
+    def __init__(self, webclient: WebClient, serialclient: SerialClient, device: Device, raw: DeviceRaw, event_bus: DeviceEventBus):
+        self.webclient = webclient
+        self.serialclient = serialclient
         self.device = device
         self.raw = raw
         self.state = DeviceState.STANDBY
         self.event_bus = event_bus
 
     async def restart(self) -> bool:
-        await self.client.send_restart_command()
+        await self.webclient.send_restart_command()
         # Yield to asyncio for a bit to try and empty any ready tasks including restart to mitigate early false positives in the port probe loop
         await asyncio.sleep(0)
         await asyncio.sleep(1)
         # Start probing for port 80
         logger.info("Starting port probe loop...")
-        r = self.client.wait_until_available(timeout=10) # This is deliberately blocking to ensure we do nothing else until a response or timeout
+        r = self.webclient.wait_until_available(timeout=10) # This is deliberately blocking to ensure we do nothing else until a response or timeout
         # Return result to caller
         if r != False:
             logger.info("Port 80 re-opened. Exiting.")
@@ -45,7 +45,7 @@ class DeviceService():
             return False
     
     async def close(self) -> None:
-        if self.client.state is ClientState.CONNECTED:
+        if self.webclient.state is ClientState.CONNECTED:
             """ We can't close the connection gracefully right now, ws.close() doesn't work and
              there is a socket leak in the EOM v2.0.0 firmware; no matter what you do you will reach
              the 3 socket maximum at some point and the HTTP server will stop new connections. 
@@ -55,10 +55,10 @@ class DeviceService():
              manually trigger a restart to restore order. Sigh."""
             logger.info("Request to close received...")
             await self.restart()
-            self.client.close_connection()
+            self.webclient.close_connection()
 
     async def start_readings(self) -> None:
-        await self.client.send_start_readings_command()
+        await self.webclient.send_start_readings_command()
         self.state = DeviceState.STREAMING
 
     def _apply_config(self, message: ConfigMessage):
@@ -108,16 +108,18 @@ class DeviceService():
                 changes = self.diff_device(old, new)
                 self.publish_to_bus(changes)
             case SerialMessage():
+                old = deepcopy(self.get_device())
                 self._apply_serial(message)
-                changes = asdict(message)
-                self.publish_to_bus(changes)
+                new = self.get_device()
+                changes = self.diff_device(old, new)
+                if changes:
+                    self.publish_to_bus(changes)
             case None:
                 pass
             case _:
                 logger.warning("Unknown message recevied: %t", type(message))
     
     def publish_to_bus(self, changes):
-        print("Bus object: ", changes)
         self.event_bus.publish(changes)
     
     def get_device(self) -> Device:
@@ -132,15 +134,20 @@ class DeviceService():
 
             if old_value != new_value:
                 changes[field.name] = new_value
-
+            
         return changes
 
-    async def _listen(self):
+    async def _listen_queue(self, queue):
         while True:
-            logger.debug("Listening for messages on internal queue...") # Why aren't you working you turd
-            message = await self.client.events.get()
-            logger.debug(f"Got message: {message!r}")
+            message = await queue.get()
+            logger.debug("Got message: %r", message)
             self._process_message(message)
+
+    async def _listen(self):
+        await asyncio.gather(
+            self._listen_queue(self.webclient.events),
+            self._listen_queue(self.serialclient.events),
+        )
 
     async def run(self):
         while True:

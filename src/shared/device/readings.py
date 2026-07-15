@@ -1,4 +1,8 @@
 from dataclasses import dataclass
+import logging
+
+# Get a logger specific to this file
+logger = logging.getLogger(__name__)
 
 @dataclass
 class Readings():
@@ -15,3 +19,4 @@ class Readings():
     def apply_patch(self, patch):
         for key, value in patch.items():
             setattr(self, key, value)
+    

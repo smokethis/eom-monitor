@@ -7,7 +7,7 @@ class EdgingControls():
     cooldown_randomised_additional_delay: int = 0 # Milliseconds
     arousal_detection_holdoff: int = 0 # Milliseconds
     pressure_smoothing: int = 0 # Unknown
-    arousal_threshold: int = 0 # 0-256 ?
+    arousal_threshold: int = 4096 # 0-256 ?
     sensor_sensitivity: int = 0 # 0-4096 ?
     use_average_values: bool = False
     update_frequency: int = 50 # Hz

@@ -8,6 +8,7 @@ from .state import State
 from dataclasses import dataclass, field
 from collections import deque
 import logging
+from time import time
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
@@ -32,6 +33,7 @@ class Device():
     orgasm_detection: OrgasmDetection = field(default_factory=OrgasmDetection)
     state: State = field(default_factory=State)
     readings: Readings = field(default_factory=Readings)
+    # update_time: int = time.now()
 
     def update_from_config(self, config: ConfigMessage):
         self.edging_controls.arousal_decay_rate = config.arousal_decay_rate
@@ -118,10 +120,39 @@ class Device():
         # self.orgasm_detection = message.detect_last_interval_ms # Woo
 
     def apply_patch(self, patch: dict[str, object]) -> None:
-        for key, value in patch.items():
-            current = getattr(self, key)
+        logger.debug(f"Applying patch keys: {list(patch.keys())}")
 
-            if hasattr(current, "apply_patch") and isinstance(value, dict):
-                current.apply_patch(value)
-            else:
-                setattr(self, key, value)
+        for key, value in patch.items():
+            try:
+                logger.debug(f"  Updating {key!r} -> {value!r} ({type(value).__name__})")
+
+                if not hasattr(self, key):
+                    logger.debug(f"  WARNING: {key!r} does not exist on {type(self).__name__}")
+                    continue
+
+                current = getattr(self, key)
+
+                if hasattr(current, "apply_patch") and isinstance(value, dict):
+                    logger.debug(f"  Nested patch into {key}")
+                    current.apply_patch(value)
+                else:
+                    setattr(self, key, value)
+
+            except Exception:
+                print(f"FAILED applying key {key!r} with value {value!r}")
+                import traceback
+                traceback.print_exc()
+                raise
+
+    logger.debug("Patch applied successfully")
+
+    ##### Old version of apply_patch
+    # def apply_patch(self, patch: dict[str, object]) -> None:
+    #     # self.update_time = time.now()
+    #     for key, value in patch.items():
+    #         current = getattr(self, key)
+
+    #         if hasattr(current, "apply_patch") and isinstance(value, dict):
+    #             current.apply_patch(value)
+    #         else:
+    #             setattr(self, key, value)

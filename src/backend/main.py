@@ -1,7 +1,7 @@
 from litestar import Litestar
 from litestar.di import Provide
 from .api import routes
-from .eom.websocketclient import Client
+from .eom.websocketclient import WebClient
 from .eom.serialclient import SerialClient
 from ..shared.device.device import Device, DeviceRaw
 from .services.device_service import DeviceService
@@ -12,27 +12,29 @@ import os
 from contextlib import asynccontextmanager
 
 # Set this when debugging. Save me from stupid software
-logging.basicConfig(level=logging.DEBUG)
-# logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 eom_ip = os.environ["EOM_IP"]
 eom_port = int(os.environ["EOM_PORT"])
+eom_serial = os.environ["EOM_SERIAL"]
 
-# client = Client(ip=eom_ip, port=eom_port)
-client = SerialClient("/dev/tty.usbserial-DU0DI6KU", 115200)
+webclient = WebClient(ip=eom_ip, port=eom_port)
+serialclient = SerialClient(eom_serial, 115200)
 device = Device()
 event_bus = DeviceEventBus()
 raw = DeviceRaw()
-service = DeviceService(client, device, raw, event_bus)
+service = DeviceService(webclient, serialclient, device, raw, event_bus)
 
 @asynccontextmanager
 async def lifespan(app: Litestar):
 
-    # if not client.port_probe():
-        # raise RuntimeError("Device unavailable")
+    if not webclient.port_probe():
+        raise RuntimeError("Device unavailable")
     
     # Yes, really; start these tasks and proceed
-    client_task = asyncio.create_task(client.run())
+    serial_client_task = asyncio.create_task(serialclient.run())
+    web_client_task = asyncio.create_task(webclient.run())
     service_task = asyncio.create_task(service.run())
 
     # Wait for shutdown to commence
@@ -40,15 +42,17 @@ async def lifespan(app: Litestar):
 
     # Run shutdown tasks
     print("Stopping application")
-    # await service.close()
+    await service.close()
 
-    client_task.cancel()
+    serial_client_task.cancel()
+    web_client_task.cancel()
     service_task.cancel()
 
     await asyncio.gather(
-        client_task,
+        serial_client_task,
+        web_client_task,
         service_task,
-        return_exceptions=True,
+        return_exceptions=True
     )
 
 # Litestar app configuration
