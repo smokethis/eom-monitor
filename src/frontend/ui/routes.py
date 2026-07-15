@@ -1,5 +1,5 @@
 from nicegui import ui
-from .widgets.title_bar import TitleBar
+from src.frontend.ui.widgets.title_bar import TitleBar
 from .pages.dashboard import Dashboard
 from .pages.edging import Edging
 from src.shared.utils import serialisation

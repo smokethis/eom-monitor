@@ -1,18 +1,20 @@
 from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
-from src.frontend.ui.viewmodels.edging_vm import EdgingGraphViewModel
+from src.frontend.ui.viewmodels.edging_vm import EdgingViewModel
+from collections import deque
 
 class Edging:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
         self.client = client
         self.service = service
-        self.vm = EdgingGraphViewModel(self.service)
+        self.vm = EdgingViewModel(self.service)
     
     def render(self):
         ui.label("Edging").classes("text-3xl")
         self.textbox()
         self.poc_graph()
+        ui.timer(1/20, self.redraw_chart)
 
     def textbox(self):
         with ui.card() as self.card:
@@ -33,25 +35,45 @@ class Edging:
     def poc_graph(self):
         options = {
             "title": {
-                "text": "Motor speed",
+                "text": "Edging",
             },
             "xAxis": {
-                "type": "category",
-                "data": [5, 90, 56],
+                "type": "time",
+                "data": [],
             },
             "yAxis": {
                 "type": "value",
             },
             "series": [
                 {
-                    "name": "RPM",
+                    "name": "Pressure",
                     "type": "line",
-                    "data": [15, 25, 222],
+                    "data": []
+                },
+                {
+                    "name": "Arousal level",
+                    "type": "line",
+                    "data": []
+                },
+                {
+                    "name": "Motor speed",
+                    "type": "line",
+                    "data": []
                 }
             ],
         }
 
-        chart = ui.echart(options)
-        return chart
-
-        
+        self.chart = ui.echart(options)
+        return self.chart
+    
+    def redraw_chart(self):
+        self.chart.run_chart_method(
+            "setOption",
+            {
+                "series": [
+                    {"data": list(self.vm.pressure_history)},
+                    {"data": list(self.vm.arousal_level_history)},
+                    {"data": list(self.vm.motor_speed_history)}
+                ]
+            }
+        )
