@@ -1,10 +1,10 @@
 from nicegui import ui
-from nicegui.javascript_request import JavaScriptRequest
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingViewModel
+from time import time
 
-class Edging:
+class Edging():
     def __init__(self, client: LitestarApiClient, service: DeviceService):
         self.client = client
         self.service = service
@@ -20,9 +20,10 @@ class Edging:
                     self.motor_gauge()
                 with ui.card().classes("w-64"):
                     self.arousal_gauge()
-            self.poc_graph()
-        ui.timer(0.5, self.redraw_chart)
-        ui.timer(0.05, self.redraw_gauges)
+            self.history_graph()
+        ui.timer(0.05, self.vm.sample)
+        ui.timer(0.05, self.redraw_chart)
+        ui.timer(0.01, self.redraw_gauges)
 
     def textbox(self):
             ui.label("Raw instant data").classes('font-bold')
@@ -44,7 +45,7 @@ class Edging:
     
     def motor_gauge(self):
         options = {
-            "animationDurationUpdate": 200,
+            "animationDurationUpdate": 50,
             "animationEasingUpdate": "linear",
             "series": [
                 {
@@ -93,7 +94,7 @@ class Edging:
 
     def arousal_gauge(self):
         options = {
-            "animationDurationUpdate": 200,
+            "animationDurationUpdate": 20,
             "animationEasingUpdate": "linear",
             "series": [
                 {
@@ -141,22 +142,6 @@ class Edging:
                     },
                     "axisLabel": {
                         "show": False
-                        # "color": '#464646',
-                        # "fontSize": 20,
-                        # "distance": -60,
-                        # "rotate": 'tangential',
-                        # "formatter": function (value) {
-                        # if (value === 0.875) {
-                        #     return 'Grade A';
-                        # } else if (value === 0.625) {
-                        #     return 'Grade B';
-                        # } else if (value === 0.375) {
-                        #     return 'Grade C';
-                        # } else if (value === 0.125) {
-                        #     return 'Grade D';
-                        # }
-                        # return '';
-                        # }
                     },
                     "title": {
                         "offsetCenter": [0, '-10%'],
@@ -166,9 +151,6 @@ class Edging:
                         "fontSize": 30,
                         "offsetCenter": [0, '-35%'],
                         "valueAnimation": False,
-                        # "formatter": function (value) {
-                        # return Math.round(value * 100) + '';
-                        # },
                         "color": 'inherit'
                     },
                     "data": []
@@ -178,7 +160,7 @@ class Edging:
         self.ag = ui.echart(options)
         return self.ag
 
-    def poc_graph(self):
+    def history_graph(self):
         options = {
             "title": {
                 "text": "Edging"
@@ -186,20 +168,12 @@ class Edging:
             "xAxis": {
                 "type": "time",
                 "data": [],
-                "minorTick": {
-                    "show": True
+                "axisLabel": {
+                    "show": False
                 },
-                # "splitLine": {
-                #     "lineStyle": {
-                #         "color": "#999"
-                #     }
-                # },
-                # "minorSplitLine": {
-                #     "show": True,
-                #     "lineStyle": {
-                #         "color": "#ddd"
-                #     }
-                # }
+                "axisTick": {
+                    "show": False
+                }
             },
             "legend": {},
             "yAxis": [
@@ -208,12 +182,9 @@ class Edging:
                         "name": "Percent %",
                         "min": 0,
                         "max": 100,
-                        # "position": "right"
                     }
 
             ],
-            # "animationEasingUpdate": "exponentialOut",
-            "animation": False,
             "series": [
                 {
                     "name": "Pressure",
@@ -240,7 +211,6 @@ class Edging:
         return self.chart
     
     def redraw_chart(self):
-        # pass
         self.chart.run_chart_method(
             "setOption",
             {
@@ -248,10 +218,14 @@ class Edging:
                     {"data": list(self.vm.pressure_history)},
                     {"data": list(self.vm.arousal_level_history)},
                     {"data": list(self.vm.motor_speed_history)}
-                ]
+                ],
+                "xAxis": {
+                    "min": time() - 10,
+                    "max": time()
+                }
             }
         )
-    
+
     def redraw_gauges(self):
         self.mg.run_chart_method(
             "setOption",

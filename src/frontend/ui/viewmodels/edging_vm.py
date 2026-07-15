@@ -1,7 +1,8 @@
 from src.shared.device.device import Device
 from collections import deque
+import time
 
-class EdgingViewModel():
+class EdgingViewModel:
     def __init__(self, service):
         self.arousal_level = 0
         self.pressure = 0
@@ -10,9 +11,9 @@ class EdgingViewModel():
         self.arousal_percent = 0
         self.motor_percent = 0
         self.service = service
-        self.arousal_level_history = deque(maxlen=100)
-        self.pressure_history = deque(maxlen=100)
-        self.motor_speed_history = deque(maxlen=100)
+        self.arousal_level_history = deque(maxlen=250)
+        self.pressure_history = deque(maxlen=250)
+        self.motor_speed_history = deque(maxlen=250)
 
         service.subscribe(self.device_updated)
         
@@ -25,10 +26,13 @@ class EdgingViewModel():
         self.motor_percent = (device.state.motor_speed / device.edging_controls.motor_settings.max_speed) * 100
         self.arousal_percent = (device.readings.arousal_level / device.edging_controls.arousal_threshold) * 100
 
+    def sample(self):
+        now = time.time()
+
         # Update history deques
-        self.pressure_history.append((device.state.time_since_power_on, (device.readings.pressure / 4095) * 100))
-        self.arousal_level_history.append((device.state.time_since_power_on, self.arousal_percent))
-        self.motor_speed_history.append((device.state.time_since_power_on, self.motor_percent))
-    
+        # self.pressure_history.append((now, (device.readings.pressure / 4095) * 100))
+        self.arousal_level_history.append((now, self.arousal_percent))
+        self.motor_speed_history.append((now, self.motor_percent))
+
     def dispose(self):
         self.service.unsubscribe(self.device_updated)
