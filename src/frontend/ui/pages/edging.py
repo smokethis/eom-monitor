@@ -11,7 +11,7 @@ class Edging:
         self.vm = EdgingViewModel(self.service)
     
     def render(self):
-        ui.label("Edging").classes("text-3xl")
+        ui.label("Edging Monitor").classes("text-3xl")
         with ui.column().classes("w-full"):
             with ui.row().classes("gap-4"):
                 with ui.card().classes("w-64"):
@@ -21,7 +21,8 @@ class Edging:
                 with ui.card().classes("w-64"):
                     self.arousal_gauge()
             self.poc_graph()
-        ui.timer(1/10, self.redraw_chart)
+        ui.timer(0.5, self.redraw_chart)
+        ui.timer(0.05, self.redraw_gauges)
 
     def textbox(self):
             ui.label("Raw instant data").classes('font-bold')
@@ -204,43 +205,32 @@ class Edging:
             "yAxis": [
                     {
                         "type": "value",
-                        "name": "Raw",
-                        "min": "0",
-                        "max": "4096",
-                        "position": "left",
-                        "splitLine": {
-                            "show": False
-                        }
-                    },
-                    {
-                        "type": "value",
                         "name": "Percent %",
                         "min": 0,
                         "max": 100,
-                        "position": "right"
-                    },
+                        # "position": "right"
+                    }
 
             ],
+            # "animationEasingUpdate": "exponentialOut",
+            "animation": False,
             "series": [
                 {
                     "name": "Pressure",
                     "type": "line",
                     "data": [],
-                    "yAxisIndex": 0,
                     "showSymbol": False
                 },
                 {
                     "name": "Arousal level",
                     "type": "line",
                     "data": [],
-                    "yAxisIndex": 1,
                     "showSymbol": False
                 },
                 {
                     "name": "Motor speed",
                     "type": "line",
                     "data": [],
-                    "yAxisIndex": 1,
                     "showSymbol": False
                 }
             ],
@@ -250,6 +240,7 @@ class Edging:
         return self.chart
     
     def redraw_chart(self):
+        # pass
         self.chart.run_chart_method(
             "setOption",
             {
@@ -260,6 +251,8 @@ class Edging:
                 ]
             }
         )
+    
+    def redraw_gauges(self):
         self.mg.run_chart_method(
             "setOption",
             {

@@ -10,15 +10,15 @@ class EdgingViewModel():
         self.arousal_percent = 0
         self.motor_percent = 0
         self.service = service
-        self.arousal_level_history = deque(maxlen=200)
-        self.pressure_history = deque(maxlen=200)
-        self.motor_speed_history = deque(maxlen=200)
+        self.arousal_level_history = deque(maxlen=100)
+        self.pressure_history = deque(maxlen=100)
+        self.motor_speed_history = deque(maxlen=100)
 
         service.subscribe(self.device_updated)
         
     def device_updated(self, device: Device):
         # Update static elements
-        self.pressure = device.readings.pressure
+        self.pressure = (device.readings.pressure / 4095) * 100
         self.time_since_power_on = device.state.time_since_power_on
         self.motor_speed = device.state.motor_speed
         self.arousal_level = device.readings.arousal_level
@@ -26,7 +26,7 @@ class EdgingViewModel():
         self.arousal_percent = (device.readings.arousal_level / device.edging_controls.arousal_threshold) * 100
 
         # Update history deques
-        self.pressure_history.append((device.state.time_since_power_on, device.readings.pressure))
+        self.pressure_history.append((device.state.time_since_power_on, (device.readings.pressure / 4095) * 100))
         self.arousal_level_history.append((device.state.time_since_power_on, self.arousal_percent))
         self.motor_speed_history.append((device.state.time_since_power_on, self.motor_percent))
     
