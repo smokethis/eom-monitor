@@ -18,9 +18,6 @@ class SerialClient:
         self.connection_status = asyncio.Queue(5)
 
     async def run(self) -> str:
-        root = logging.getLogger()
-        print("Serial Root level:", root.level)
-        print("Serial Handlers:", root.handlers)
 
         logger.debug("Attempting to open serial: %s", self.port)
         while True:

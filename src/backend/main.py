@@ -26,8 +26,6 @@ service = DeviceService(webclient, serialclient, device, raw, event_bus)
 async def lifespan(app: Litestar):
     # Switch on debug messaging
     # logging.basicConfig(level=logging.DEBUG, force=True)
-    # Get a logger specific to this file
-    # logger = logging.getLogger(__name__)
     
     # Yes, really; start these tasks and proceed
     serial_client_task = asyncio.create_task(serialclient.run())
@@ -58,6 +56,8 @@ app = Litestar(
         routes.get_config, 
         routes.get_readings,
         routes.get_readings_history,
+        routes.get_device,
+        routes.get_service,
         routes.restart_device,
         routes.start_stream,
         routes.get_info,

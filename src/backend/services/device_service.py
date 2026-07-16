@@ -156,12 +156,21 @@ class DeviceService():
                     logger.warning("Unknown message recevied: %s", type(connection))
 
     async def _listen(self):
-        await asyncio.gather(
-            self._message_queue(self.webclient.events),
-            self._message_queue(self.serialclient.messages),
-            self._status_queue("serial", self.serialclient.connection_status),
-            # self._status_queue("websocket", self.webclient.connection_status)
-        )
+        tasks = [
+            asyncio.create_task(self._message_queue(self.webclient.events)),
+            asyncio.create_task(self._message_queue(self.serialclient.messages)),
+            asyncio.create_task(self._status_queue("serial", self.serialclient.connection_status)),
+            asyncio.create_task(self._status_queue("websocket", self.webclient.connection_status)),
+        ]
+
+        try:
+            await asyncio.gather(*tasks)
+        except asyncio.CancelledError:
+            for task in tasks:
+                task.cancel()
+
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise
 
     async def run(self):
         while True:

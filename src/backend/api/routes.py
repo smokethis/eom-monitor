@@ -32,11 +32,11 @@ async def get_info(service: DeviceService) -> InfoMessage:
 
 @post("/api/update/info")
 async def update_info(service: DeviceService) -> None:
-    await service.client.request_info()
+    await service.webclient.request_info()
 
 @post("/api/update/config")
 async def update_config(service: DeviceService) -> None:
-    await service.client.request_config()
+    await service.webclient.request_config()
 
 @post("/api/start_stream")
 async def start_stream(service: DeviceService) -> None:
