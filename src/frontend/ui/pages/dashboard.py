@@ -1,7 +1,8 @@
 from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
 from src.frontend.services.device_service import DeviceService
-from src.frontend.ui.components.layout import page_layout
+from src.shared.models.modes import ConnectionState
+from src.frontend.ui.components.header import PageHeader
 
 class Dashboard:
     def __init__(self, client: LitestarApiClient, service: DeviceService):
@@ -9,29 +10,23 @@ class Dashboard:
         self.service = service
 
     def render(self):
-        with page_layout("EOM Dashboard"):
 
-            backend_icon = ui.icon("s_error").classes("text-2xl")
-            serial_icon = ui.icon("s_error").classes("text-2xl")
-            websocket_icon = ui.icon("s_error").classes("text-2xl")
+        PageHeader("EOM Dashboard")
 
-            with ui.card():
+        with ui.row():
+            ui.button("Initialise", on_click=self.initialise_and_refresh)
+            ui.button("Refresh Device", on_click=self.refresh_device)
+            ui.button("Start stream", on_click=self.client.start_stream)
+            ui.button("Restart device", on_click=self.client.restart)
+        with ui.card():
+            with ui.column():
                 with ui.row():
-                    ui.label("Backend connected:")
+                    ui.label("Connection Status:")
+                with ui.row():
                     # backend_icon.bind_name_from(self.service, "connection_icon")
-                with ui.row():
-                    ui.label("Device serial connected:")
-                    StatusIcon(self.service, "serial")
-                with ui.row():
-                    ui.label("Device websocket connected:")
-                    StatusIcon(self.service, "websocket")
-            with ui.row():
-                ui.button("Initialise", on_click=self.initialise_and_refresh)
-                ui.button("Refresh Device", on_click=self.refresh_device)
-                ui.button("Start stream", on_click=self.client.start_stream)
-                ui.button("Restart device", on_click=self.client.restart)
+                    StatusBadge(self.service, "serial")
+                    StatusBadge(self.service, "websocket")
 
-            with ui.row():
                 self.info_card()
 
     def info_card(self):
@@ -52,17 +47,32 @@ class Dashboard:
         # This is fucked and I don't know why. It never runs.
         ui.notify("Restarting device...")
 
-class StatusIcon(ui.icon):
+class StatusBadge(ui.badge):
     def __init__(self, service: DeviceService, connection: str):
+        super().__init__(text=connection)
         self.service = service
-        super().__init__("s_help")
-        self.classes("text-2xl")
+        self.connection = connection
+        self.props('rounded')
+        self.classes('q-mr-sm')
+        
+        # Set initial color
+        self._sync_color()
+        
+        # Poll for status changes (every 2 seconds)
+        ui.timer(2.0, self._sync_color)
 
-        self.bind_name_from(service, f"{connection}_connection_icon")
-
-        # service.subscribe(self.update_status)
-        # self.update_status(connection)
-
-    # def update_status(self, connection):
-    #     col = "color={self.service." + connection + "_connection_color}"
-    #     self.props(col)
+    def _sync_color(self):
+        # Replace with your actual status check logic
+        match self.connection:
+            case "serial":
+                conn = self.service.device.state.serial_connection
+            case "websocket":
+                conn = self.service.device.state.websocket_connection
+        match conn:
+            case ConnectionState.Connected:
+                color = 'positive'
+            case ConnectionState.Disconnected:
+                color = 'negative'
+            case _:
+                color = 'grey'
+        self.props(f'color={color}')

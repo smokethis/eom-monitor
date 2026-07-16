@@ -1,5 +1,6 @@
 from nicegui import ui
 from src.frontend.api.client import LitestarApiClient
+from src.frontend.ui.components.header import PageHeader
 from src.frontend.services.device_service import DeviceService
 from src.frontend.ui.viewmodels.edging_vm import EdgingViewModel
 from time import time
@@ -11,7 +12,9 @@ class Edging():
         self.vm = EdgingViewModel(self.service)
     
     def render(self):
-        ui.label("Edging Monitor").classes("text-3xl")
+
+        PageHeader("Edging Information")
+        
         with ui.column().classes("w-full"):
             with ui.row().classes("gap-4"):
                 with ui.card().classes("w-64"):
