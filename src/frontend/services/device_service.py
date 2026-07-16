@@ -1,5 +1,6 @@
 from src.shared.device.device import Device
 from src.frontend.api.client import LitestarApiClient
+from src.shared.models.modes import ConnectionState
 
 class DeviceService:
     def __init__(self, client: LitestarApiClient):
@@ -16,6 +17,10 @@ class DeviceService:
         self.device.update_from_info(info)
         config = await self.client.get_config()
         self.device.update_from_config(config)
+    
+    async def refresh_device(self):
+        state = await self.client.get_device()
+        self.device.refresh_device(state)
     
     def subscribe(self, callback):
         self._listeners.append(callback)
@@ -36,3 +41,27 @@ class DeviceService:
                 except Exception:
                     import traceback
                     traceback.print_exc()
+    
+    @property
+    def serial_connection_color(self):
+        if self.device.state.serial_connection == ConnectionState.Connected:
+            return "positive"
+        return "negative"
+    
+    @property
+    def serial_connection_icon(self):
+        if self.device.state.serial_connection == ConnectionState.Connected:
+            return "s_check_circle"
+        return "s_error"
+    
+    @property
+    def websocket_connection_color(self):
+        if self.device.state.serial_connection == ConnectionState.Connected:
+            return "positive"
+        return "negative"
+    
+    @property
+    def websocket_connection_icon(self):
+        if self.device.state.serial_connection == ConnectionState.Connected:
+            return "s_check_circle"
+        return "s_error"

@@ -5,7 +5,7 @@ from .console import Console
 from .orgasm_detection import OrgasmDetection
 from .readings import Readings
 from .state import State
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from collections import deque
 import logging
 from time import time
@@ -129,3 +129,8 @@ class Device():
                 current.apply_patch(value)
             else:
                 setattr(self, key, value)
+
+    def refresh_device(self, input: Device) -> None:
+        self.update_time = time()
+        for f in fields(input):
+            setattr(self, f.name, getattr(input, f.name))

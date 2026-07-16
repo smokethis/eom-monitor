@@ -1,5 +1,6 @@
 import httpx
 from ...shared.models.messages import ConfigMessage, InfoMessage
+from ...shared.device.device import Device
 import msgspec
 import websockets
 import json
@@ -23,9 +24,12 @@ class LitestarApiClient:
     async def get_config(self) -> ConfigMessage:
         response = await self.http.get("/api/raw/config")
         return msgspec.convert(response.json(), type=ConfigMessage)
+    
+    async def get_device(self) -> Device:
+        response = await self.http.get("/api/device")
+        return msgspec.convert(response.json(), type=Device)
 
     async def restart(self) -> None:
-        print("Someone POSTed to the restart endpoint!!!")
         await self.http.post("/api/restart")
 
     async def start_stream(self) -> None:
