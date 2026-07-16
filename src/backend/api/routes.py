@@ -5,7 +5,7 @@ from ...shared.device.device import Device
 from ..services.device_bus import DeviceEventBus
 from collections import deque
 import msgspec
-from ..services.device_service import DeviceService, DeviceState
+from ..services.device_service import DeviceService, StreamState
 
 clients: set[WebSocket] = set()
 
@@ -52,7 +52,7 @@ async def start_stream(service: DeviceService) -> None:
 
 @get("/api/raw/readings")
 async def get_readings(service: DeviceService) -> ReadingsMessage:
-    if not service.state == DeviceState.STREAMING:
+    if not service.stream_state == StreamState.STREAMING:
         raise HTTPException(
             status_code=409,
             detail="Streaming has not been started. Call POST /api/start_stream first."
@@ -61,7 +61,7 @@ async def get_readings(service: DeviceService) -> ReadingsMessage:
 
 @get("/api/raw/readings/history")
 async def get_readings_history(service: DeviceService) -> deque:
-    if not service.state == DeviceState.STREAMING:
+    if not service.stream_state == StreamState.STREAMING:
         raise HTTPException(
             status_code=409,
             detail="Streaming has not been started. Call POST /api/start_stream first."

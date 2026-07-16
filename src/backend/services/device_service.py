@@ -3,6 +3,7 @@ from ..eom.websocketclient import WebClient
 from ..eom.serialclient import SerialClient
 from .device_bus import DeviceEventBus
 from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage, SerialMessage
+from ...shared.models.modes import ConnectionState
 from ...shared.device.device import Device, DeviceRaw
 import logging
 from enum import Enum
@@ -12,7 +13,7 @@ from copy import deepcopy
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
 
-class DeviceState(Enum):
+class StreamState(Enum):
     STANDBY = "STANDBY"
     STREAMING = "STREAMING"
 
@@ -22,7 +23,7 @@ class DeviceService():
         self.serialclient = serialclient
         self.device = device
         self.raw = raw
-        self.state = DeviceState.STANDBY
+        self.stream_state = StreamState.STANDBY
         self.event_bus = event_bus
 
     async def restart(self) -> bool:
@@ -44,7 +45,7 @@ class DeviceService():
             return False
     
     async def close(self) -> None:
-        if self.webclient.state is ClientState.CONNECTED:
+        if self.device.state.websocket_connection is ConnectionState.Connected:
             """ We can't close the connection gracefully right now, ws.close() doesn't work and
              there is a socket leak in the EOM v2.0.0 firmware; no matter what you do you will reach
              the 3 socket maximum at some point and the HTTP server will stop new connections. 
@@ -58,7 +59,7 @@ class DeviceService():
 
     async def start_readings(self) -> None:
         await self.webclient.send_start_readings_command()
-        self.state = DeviceState.STREAMING
+        self.stream_state = StreamState.STREAMING
 
     def _apply_config(self, message: ConfigMessage):
         self.device.update_from_config(message)
