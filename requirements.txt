@@ -5,4 +5,4 @@ websockets
 nicegui
 httpx
 pyserial
-pyserial-asyncio
+pyserial-asyncio-fast

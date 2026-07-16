@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from src.backend.models.modes import VibrationMode
+from src.shared.models.modes import VibrationMode
 
 @dataclass
 class Motor():

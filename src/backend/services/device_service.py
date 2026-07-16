@@ -1,5 +1,5 @@
 import asyncio
-from ..eom.websocketclient import WebClient, ClientState
+from ..eom.websocketclient import WebClient
 from ..eom.serialclient import SerialClient
 from .device_bus import DeviceEventBus
 from ...shared.models.messages import InfoMessage, ConfigMessage, ReadingsMessage, WifiStatusMessage, SerialMessage
@@ -11,7 +11,6 @@ from copy import deepcopy
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
-# logging.basicConfig(level=logging.DEBUG)
 
 class DeviceState(Enum):
     STANDBY = "STANDBY"
@@ -117,7 +116,7 @@ class DeviceService():
             case None:
                 pass
             case _:
-                logger.warning("Unknown message recevied: %t", type(message))
+                logger.warning("Unknown message recevied: %s", type(message))
     
     def publish_to_bus(self, changes):
         self.event_bus.publish(changes)
@@ -137,16 +136,30 @@ class DeviceService():
             
         return changes
 
-    async def _listen_queue(self, queue):
+    async def _message_queue(self, queue: asyncio.Queue):
         while True:
             message = await queue.get()
-            logger.debug("Got message: %r", message)
+            # logger.debug("Got message: %r", message)
             self._process_message(message)
+
+    async def _status_queue(self, connection: str, queue: asyncio.Queue):
+        while True:
+            match connection:
+                case "serial":
+                    update = await queue.get()
+                    self.device.state.serial_connection = update
+                case "websocket":
+                    update = await queue.get()
+                    self.device.state.websocket_connection = update
+                case _:
+                    logger.warning("Unknown message recevied: %s", type(connection))
 
     async def _listen(self):
         await asyncio.gather(
-            self._listen_queue(self.webclient.events),
-            self._listen_queue(self.serialclient.events),
+            self._message_queue(self.webclient.events),
+            self._message_queue(self.serialclient.messages),
+            self._status_queue("serial", self.serialclient.connection_status),
+            # self._status_queue("websocket", self.webclient.connection_status)
         )
 
     async def run(self):

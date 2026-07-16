@@ -1,21 +1,36 @@
 import asyncio
-import serial_asyncio
+import serial_asyncio_fast
 import csv
 from src.shared.models.messages import SerialMessage
+from src.shared.models.modes import ConnectionState
+import logging
+
+# Get a logger specific to this file
+logger = logging.getLogger(__name__)
+# Debug mode on
+logging.basicConfig(level=logging.DEBUG)
 
 class SerialClient:
     def __init__(self, port, baud):
         self.port = port
         self.baud = baud
-        self.events = asyncio.Queue()
+        self.messages = asyncio.Queue(1000)
+        self.connection_status = asyncio.Queue(5)
 
     async def run(self) -> str:
+        root = logging.getLogger()
+        print("Serial Root level:", root.level)
+        print("Serial Handlers:", root.handlers)
+
+        logger.debug("Attempting to open serial: %s", self.port)
         while True:
             try:
-                reader, writer = await serial_asyncio.open_serial_connection(
+                reader, writer = await serial_asyncio_fast.open_serial_connection(
                     url=self.port,
                     baudrate=self.baud,
                 )
+                await self.connection_status.put(ConnectionState.Connected)
+                logger.debug("Serial connection opened")
 
                 while True:
                     line = await reader.readline()
@@ -23,15 +38,18 @@ class SerialClient:
                     if not line:
                         break
 
-                    r = self.parse_line(line.decode().strip())
-                    await self.events.put(r)
+                    m = self.parse_line(line.decode().strip())
+                    await self.messages.put(m)
+            
+            except asyncio.CancelledError:
+                logger.info("Serial client stopping")
+                raise
 
             except Exception as ex:
+                await self.connection_status.put(ConnectionState.Error)
                 print(ex)
-                await asyncio.sleep(2)
 
-    def handle_line(self, line:str):
-        print(line)
+            await asyncio.sleep(2)
 
     def parse_line(self, line: str) -> SerialMessage | None:
 

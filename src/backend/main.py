@@ -6,14 +6,10 @@ from .eom.serialclient import SerialClient
 from ..shared.device.device import Device, DeviceRaw
 from .services.device_service import DeviceService
 from .services.device_bus import DeviceEventBus
-import logging
 import asyncio
 import os
+import logging
 from contextlib import asynccontextmanager
-
-# Set this when debugging. Save me from stupid software
-# logging.basicConfig(level=logging.DEBUG)
-logging.basicConfig(level=logging.INFO)
 
 eom_ip = os.environ["EOM_IP"]
 eom_port = int(os.environ["EOM_PORT"])
@@ -28,9 +24,10 @@ service = DeviceService(webclient, serialclient, device, raw, event_bus)
 
 @asynccontextmanager
 async def lifespan(app: Litestar):
-
-    if not webclient.port_probe():
-        raise RuntimeError("Device unavailable")
+    # Switch on debug messaging
+    # logging.basicConfig(level=logging.DEBUG, force=True)
+    # Get a logger specific to this file
+    # logger = logging.getLogger(__name__)
     
     # Yes, really; start these tasks and proceed
     serial_client_task = asyncio.create_task(serialclient.run())

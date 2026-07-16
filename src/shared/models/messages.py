@@ -1,5 +1,5 @@
 from msgspec import Struct, field
-from src.backend.models.modes import VibrationMode, ControlMode
+from src.shared.models.modes import VibrationMode, ControlMode
 
 class ConfigMessage(Struct):
     wifi_ssid: str

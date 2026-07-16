@@ -15,6 +15,19 @@ logging.basicConfig(level=logging.DEBUG)
 async def startup():
     asyncio.create_task(service.start())
 
+app.colors(
+    primary = '#5898d4',
+    secondary = '#26a69a',
+    accent = '#9c27b0',
+    dark = '#1d1d1d',
+    dark_page = '#121212',
+    positive = '#21ba45',
+    negative = '#c10015',
+    info = '#31ccec',
+    warning = '#f2c037'
+    # Add additional custom colours with 'name' = 'hex
+    )
+
 register_routes(client, service)
 
 ui.run(

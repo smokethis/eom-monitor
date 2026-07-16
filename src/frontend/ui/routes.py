@@ -1,6 +1,5 @@
-from nicegui import ui
-# from src.frontend.ui.widgets.title_bar import TitleBar
-from .pages.dashboard import Dashboard
+from nicegui import ui, Client
+from src.frontend.ui.pages.dashboard import Dashboard
 from .pages.edging import Edging
 from src.shared.utils import serialisation
 from dataclasses import asdict

@@ -4,17 +4,11 @@ from websockets.asyncio.client import connect
 import logging
 import asyncio
 import msgspec
-from enum import Enum
 from ...shared.models import messages
-
-class ClientState(Enum):
-    DISCONNECTED = "DISCONNECTED"
-    CONNECTED = "CONNECTED"
+from ...shared.models.modes import ConnectionState
 
 # Get a logger specific to this file
 logger = logging.getLogger(__name__)
-# Debug mode on
-logging.basicConfig(level=logging.DEBUG)
 
 class WebClient():
     
@@ -22,7 +16,8 @@ class WebClient():
         self.uri = f"ws://{ip}:{port}/"
         self.ip = ip
         self.port = port
-        self.events = asyncio.Queue() # Need to re-add maxsize, wasn't that.
+        self.events = asyncio.Queue(1000)
+        self.connection_status = asyncio.Queue(5)
 
     def port_probe(self):
         try:
@@ -153,11 +148,12 @@ class WebClient():
 
     async def run(self):
         while True:
+            logger.debug("Attempting to open websocket: %s", self.uri)
             try:
                 async with connect(self.uri, ping_interval=None) as ws: # Disabled ping as the device is a nonsense
                     self.ws = ws
-                    self.state = ClientState.CONNECTED
-                    logger.info("Connected to device")
+                    await self.connection_status.put(ConnectionState.Connected)
+                    logger.debug("Websocket connection opened")
 
                     reader_task = asyncio.create_task(self._reader())
 
@@ -172,7 +168,7 @@ class WebClient():
 
             except Exception as e:
                 logger.warning("Connection error: %s", e)
-                self.state = ClientState.DISCONNECTED
+                await self.connection_status.put(ConnectionState.Error)
                 logger.warning("Retrying in 5 seconds...")
                 await asyncio.sleep(5)
         

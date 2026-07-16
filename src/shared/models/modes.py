@@ -11,3 +11,8 @@ class VibrationMode(Enum):
     RampStop = 1
     Depletion = 2
     Enhancement = 3
+
+class ConnectionState(Enum):
+    Disconnected = "DISCONNECTED"
+    Connected = "CONNECTED"
+    Error = "ERROR"
